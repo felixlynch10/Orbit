@@ -2,12 +2,14 @@ import SwiftUI
 
 enum NavItem: String, Hashable, CaseIterable {
     case today = "Today"
+    case routines = "Routines"
     case weekly = "This Week"
     case allHabits = "All Habits"
 
     var icon: String {
         switch self {
         case .today:       return "sun.max.fill"
+        case .routines:    return "list.bullet.rectangle"
         case .weekly:      return "calendar"
         case .allHabits:   return "square.grid.2x2.fill"
         }
@@ -27,6 +29,8 @@ struct ContentView: View {
                 switch selection {
                 case .today:
                     DashboardView(showingAddSheet: $showingAddSheet)
+                case .routines:
+                    RoutineListView()
                 case .weekly:
                     WeeklyGridView()
                 case .allHabits:

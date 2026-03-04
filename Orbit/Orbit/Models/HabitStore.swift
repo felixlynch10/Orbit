@@ -4,6 +4,7 @@ import SwiftUI
 class HabitStore: ObservableObject {
     @Published var habits: [Habit] = []
     @Published var categories: [HabitCategory] = []
+    @Published var routines: [Routine] = []
     @Published var selectedDate: Date = Date()
 
     private let dir: URL = {
@@ -15,10 +16,12 @@ class HabitStore: ObservableObject {
 
     private var habitsURL: URL { dir.appendingPathComponent("habits.json") }
     private var categoriesURL: URL { dir.appendingPathComponent("categories.json") }
+    private var routinesURL: URL { dir.appendingPathComponent("routines.json") }
 
     init() {
         loadCategories()
         load()
+        loadRoutines()
         if categories.isEmpty {
             seedDefaultCategories()
         }
@@ -86,6 +89,67 @@ class HabitStore: ObservableObject {
 
     var uncategorizedHabits: [Habit] {
         habits.filter { $0.categoryId == nil }
+    }
+
+    // MARK: - Routine Persistence
+
+    func saveRoutines() {
+        if let data = try? JSONEncoder().encode(routines) {
+            try? data.write(to: routinesURL, options: .atomic)
+        }
+    }
+
+    func loadRoutines() {
+        guard let data = try? Data(contentsOf: routinesURL),
+              let decoded = try? JSONDecoder().decode([Routine].self, from: data) else { return }
+        routines = decoded
+    }
+
+    // MARK: - Routine Actions
+
+    func addRoutine(_ routine: Routine) {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            routines.append(routine)
+        }
+        saveRoutines()
+    }
+
+    func deleteRoutine(id: UUID) {
+        withAnimation(.easeInOut(duration: 0.25)) {
+            routines.removeAll { $0.id == id }
+        }
+        saveRoutines()
+    }
+
+    func toggleRoutineStep(routineId: UUID, stepId: UUID, on date: Date) {
+        guard let ri = routines.firstIndex(where: { $0.id == routineId }),
+              let si = routines[ri].steps.firstIndex(where: { $0.id == stepId }) else { return }
+        routines[ri].steps[si].toggle(on: date)
+        // If step is linked to a habit, toggle that too
+        if let habitId = routines[ri].steps[si].habitId {
+            let wasCompleted = routines[ri].steps[si].isCompleted(on: date)
+            if let hi = habits.firstIndex(where: { $0.id == habitId }) {
+                let habitDone = habits[hi].isCompleted(on: date)
+                if wasCompleted != habitDone {
+                    habits[hi].toggle(on: date)
+                    save()
+                }
+            }
+        }
+        saveRoutines()
+    }
+
+    func moveRoutineStep(routineId: UUID, from source: IndexSet, to destination: Int) {
+        guard let ri = routines.firstIndex(where: { $0.id == routineId }) else { return }
+        routines[ri].steps.move(fromOffsets: source, toOffset: destination)
+        for i in routines[ri].steps.indices {
+            routines[ri].steps[i].sortOrder = i
+        }
+        saveRoutines()
+    }
+
+    var scheduledRoutines: [Routine] {
+        routines.filter { $0.isScheduled(on: selectedDate) }
     }
 
     // MARK: - Habit Actions

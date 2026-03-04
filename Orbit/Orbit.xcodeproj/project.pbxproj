@@ -22,6 +22,8 @@
 		A10000000E /* HalftoneRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000F; };
 		A10000000F /* HalftoneBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000010; };
 		A100000011 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000011; };
+		A100000012 /* Routine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000012; };
+		A100000013 /* RoutineViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000013; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +43,8 @@
 		B10000000F /* HalftoneRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalftoneRenderer.swift; sourceTree = "<group>"; };
 		B100000010 /* HalftoneBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalftoneBackgroundView.swift; sourceTree = "<group>"; };
 		B100000011 /* Category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Category.swift; sourceTree = "<group>"; };
+		B100000012 /* Routine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Routine.swift; sourceTree = "<group>"; };
+		B100000013 /* RoutineViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineViews.swift; sourceTree = "<group>"; };
 		D100000001 /* Orbit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Orbit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -82,6 +86,7 @@
 				B100000003 /* Habit.swift */,
 				B100000004 /* HabitStore.swift */,
 				B100000011 /* Category.swift */,
+				B100000012 /* Routine.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -97,6 +102,7 @@
 				B100000009 /* AddHabitSheet.swift */,
 				B10000000A /* OrbitalSystemView.swift */,
 				B100000010 /* HalftoneBackgroundView.swift */,
+				B100000013 /* RoutineViews.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -201,6 +207,8 @@
 				A10000000E /* HalftoneRenderer.swift in Sources */,
 				A10000000F /* HalftoneBackgroundView.swift in Sources */,
 				A100000011 /* Category.swift in Sources */,
+				A100000012 /* Routine.swift in Sources */,
+				A100000013 /* RoutineViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
