@@ -33,6 +33,9 @@ struct DashboardView: View {
                 VStack(alignment: .leading, spacing: 28) {
                     headerSection
                     statsSection
+                    if !store.scheduledRoutines.isEmpty {
+                        routinesSection
+                    }
                     heatmapSection
                     habitsSection
                 }
@@ -167,6 +170,19 @@ struct DashboardView: View {
                 unit: "habits",
                 color: OrbitTheme.accent
             )
+        }
+    }
+
+    // MARK: - Routines
+
+    private var routinesSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Routines")
+                .font(OrbitTheme.mono(20))
+
+            ForEach(store.scheduledRoutines) { routine in
+                RoutineCardView(routine: routine)
+            }
         }
     }
 
