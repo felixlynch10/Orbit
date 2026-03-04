@@ -3,37 +3,92 @@ import SwiftUI
 
 class HabitStore: ObservableObject {
     @Published var habits: [Habit] = []
+    @Published var categories: [HabitCategory] = []
     @Published var selectedDate: Date = Date()
 
-    private let saveURL: URL = {
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+    private let dir: URL = {
+        let d = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
             .appendingPathComponent("Orbit", isDirectory: true)
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir.appendingPathComponent("habits.json")
+        try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
+        return d
     }()
 
+    private var habitsURL: URL { dir.appendingPathComponent("habits.json") }
+    private var categoriesURL: URL { dir.appendingPathComponent("categories.json") }
+
     init() {
+        loadCategories()
         load()
+        if categories.isEmpty {
+            seedDefaultCategories()
+        }
         if habits.isEmpty {
             seedDefaults()
         }
+        migrateUncategorizedHabits()
     }
 
     // MARK: - Persistence
 
     func save() {
         if let data = try? JSONEncoder().encode(habits) {
-            try? data.write(to: saveURL, options: .atomic)
+            try? data.write(to: habitsURL, options: .atomic)
         }
     }
 
     func load() {
-        guard let data = try? Data(contentsOf: saveURL),
+        guard let data = try? Data(contentsOf: habitsURL),
               let decoded = try? JSONDecoder().decode([Habit].self, from: data) else { return }
         habits = decoded
     }
 
-    // MARK: - Actions
+    func saveCategories() {
+        if let data = try? JSONEncoder().encode(categories) {
+            try? data.write(to: categoriesURL, options: .atomic)
+        }
+    }
+
+    func loadCategories() {
+        guard let data = try? Data(contentsOf: categoriesURL),
+              let decoded = try? JSONDecoder().decode([HabitCategory].self, from: data) else { return }
+        categories = decoded
+    }
+
+    // MARK: - HabitCategory Actions
+
+    func addHabitCategory(_ category: HabitCategory) {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            categories.append(category)
+        }
+        saveCategories()
+    }
+
+    func deleteHabitCategory(id: UUID) {
+        // Move habits in this category to uncategorized
+        for i in habits.indices where habits[i].categoryId == id {
+            habits[i].categoryId = nil
+        }
+        withAnimation(.easeInOut(duration: 0.25)) {
+            categories.removeAll { $0.id == id }
+        }
+        save()
+        saveCategories()
+    }
+
+    func category(for habit: Habit) -> HabitCategory? {
+        guard let catId = habit.categoryId else { return nil }
+        return categories.first { $0.id == catId }
+    }
+
+    func habits(in category: HabitCategory) -> [Habit] {
+        habits.filter { $0.categoryId == category.id }
+    }
+
+    var uncategorizedHabits: [Habit] {
+        habits.filter { $0.categoryId == nil }
+    }
+
+    // MARK: - Habit Actions
 
     func addHabit(_ habit: Habit) {
         withAnimation(.easeInOut(duration: 0.3)) {
@@ -57,14 +112,19 @@ class HabitStore: ObservableObject {
 
     // MARK: - Computed
 
+    var scheduledHabits: [Habit] {
+        habits.filter { $0.isScheduled(on: selectedDate) }
+    }
+
     var todayCompletionRate: Double {
-        guard !habits.isEmpty else { return 0 }
-        let completed = habits.filter { $0.isCompleted(on: selectedDate) }.count
-        return Double(completed) / Double(habits.count)
+        let scheduled = scheduledHabits
+        guard !scheduled.isEmpty else { return 0 }
+        let completed = scheduled.filter { $0.isCompleted(on: selectedDate) }.count
+        return Double(completed) / Double(scheduled.count)
     }
 
     var todayCompletedCount: Int {
-        habits.filter { $0.isCompleted(on: selectedDate) }.count
+        scheduledHabits.filter { $0.isCompleted(on: selectedDate) }.count
     }
 
     var bestStreak: Int {
@@ -76,19 +136,64 @@ class HabitStore: ObservableObject {
         return habits.map { $0.completionRate(days: 7) }.reduce(0, +) / Double(habits.count)
     }
 
+    var orbitHealthScore: Int {
+        let scheduled = scheduledHabits
+        guard !scheduled.isEmpty else { return 0 }
+
+        // 60% weight: today's completion rate
+        let completionPart = todayCompletionRate * 60
+
+        // 30% weight: active streaks (avg streak across scheduled habits, capped at 30 days)
+        let avgStreak = scheduled.map { Double($0.currentStreak()) }.reduce(0, +) / Double(scheduled.count)
+        let streakPart = min(avgStreak / 30.0, 1.0) * 30
+
+        // 10% weight: weekly consistency
+        let weeklyPart = weeklyRate * 10
+
+        return min(Int(completionPart + streakPart + weeklyPart), 100)
+    }
+
+    func completionRate(for category: HabitCategory) -> Double {
+        let catHabits = habits(in: category)
+        guard !catHabits.isEmpty else { return 0 }
+        let completed = catHabits.filter { $0.isCompleted(on: selectedDate) }.count
+        return Double(completed) / Double(catHabits.count)
+    }
+
     // MARK: - Seed
 
+    private func seedDefaultCategories() {
+        categories = HabitCategory.defaults
+        saveCategories()
+    }
+
     private func seedDefaults() {
-        let defaults: [(String, String, String)] = [
-            ("Exercise", "figure.run", "green"),
-            ("Read", "book.fill", "blue"),
-            ("Meditate", "brain.head.profile", "purple"),
-            ("Hydrate", "drop.fill", "blue"),
-            ("Journal", "pencil.line", "orange"),
+        let healthId = categories.first { $0.name == "Health" }?.id
+        let mindId = categories.first { $0.name == "Mind" }?.id
+        let productivityId = categories.first { $0.name == "Productivity" }?.id
+
+        let defaults: [(String, String, String, UUID?)] = [
+            ("Exercise", "figure.run", "green", healthId),
+            ("Read", "book.fill", "blue", mindId),
+            ("Meditate", "brain.head.profile", "purple", mindId),
+            ("Hydrate", "drop.fill", "blue", healthId),
+            ("Journal", "pencil.line", "orange", productivityId),
         ]
-        for (name, icon, color) in defaults {
-            habits.append(Habit(name: name, icon: icon, colorName: color))
+        for (name, icon, color, catId) in defaults {
+            habits.append(Habit(name: name, icon: icon, colorName: color, categoryId: catId))
         }
         save()
+    }
+
+    private func migrateUncategorizedHabits() {
+        // Assign existing uncategorized habits to a sensible default
+        guard !categories.isEmpty else { return }
+        let defaultCat = categories.first!
+        var changed = false
+        for i in habits.indices where habits[i].categoryId == nil {
+            habits[i].categoryId = defaultCat.id
+            changed = true
+        }
+        if changed { save() }
     }
 }

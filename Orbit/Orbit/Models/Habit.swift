@@ -8,8 +8,10 @@ struct Habit: Identifiable, Codable, Hashable {
     var completions: [String: Bool]  // "yyyy-MM-dd" -> true
     var createdAt: Date
     var targetDaysPerWeek: Int
+    var categoryId: UUID?
+    var scheduledDays: Set<Int>  // 1=Sun, 2=Mon, ... 7=Sat (Calendar weekday)
 
-    init(name: String, icon: String = "circle.fill", colorName: String = "green", targetDaysPerWeek: Int = 7) {
+    init(name: String, icon: String = "circle.fill", colorName: String = "green", targetDaysPerWeek: Int = 7, categoryId: UUID? = nil, scheduledDays: Set<Int>? = nil) {
         self.id = UUID()
         self.name = name
         self.icon = icon
@@ -17,6 +19,13 @@ struct Habit: Identifiable, Codable, Hashable {
         self.completions = [:]
         self.createdAt = Date()
         self.targetDaysPerWeek = targetDaysPerWeek
+        self.categoryId = categoryId
+        self.scheduledDays = scheduledDays ?? Set(1...7) // default: every day
+    }
+
+    func isScheduled(on date: Date) -> Bool {
+        let weekday = Calendar.current.component(.weekday, from: date)
+        return scheduledDays.contains(weekday)
     }
 
     // MARK: - Helpers

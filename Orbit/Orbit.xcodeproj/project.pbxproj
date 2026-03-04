@@ -21,6 +21,7 @@
 		A10000000D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B10000000D; };
 		A10000000E /* HalftoneRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10000000F; };
 		A10000000F /* HalftoneBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000010; };
+		A100000011 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000011; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +40,7 @@
 		B10000000E /* Orbit.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Orbit.entitlements; sourceTree = "<group>"; };
 		B10000000F /* HalftoneRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalftoneRenderer.swift; sourceTree = "<group>"; };
 		B100000010 /* HalftoneBackgroundView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalftoneBackgroundView.swift; sourceTree = "<group>"; };
+		B100000011 /* Category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Category.swift; sourceTree = "<group>"; };
 		D100000001 /* Orbit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Orbit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -79,6 +81,7 @@
 			children = (
 				B100000003 /* Habit.swift */,
 				B100000004 /* HabitStore.swift */,
+				B100000011 /* Category.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -197,6 +200,7 @@
 				A10000000C /* Theme.swift in Sources */,
 				A10000000E /* HalftoneRenderer.swift in Sources */,
 				A10000000F /* HalftoneBackgroundView.swift in Sources */,
+				A100000011 /* Category.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -8,6 +8,8 @@ struct AddHabitSheet: View {
     @State private var selectedIcon = "figure.run"
     @State private var selectedColor = "green"
     @State private var targetDays = 7
+    @State private var selectedCategoryId: UUID?
+    @State private var scheduledDays: Set<Int> = Set(1...7)
 
     private let columns = [GridItem(.adaptive(minimum: 40))]
 
@@ -43,6 +45,49 @@ struct AddHabitSheet: View {
                             .font(.system(size: 15))
                             .padding(10)
                             .background(Color.gray.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+                    }
+
+                    // Category picker
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Category")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+
+                        HStack(spacing: 8) {
+                            ForEach(store.categories) { category in
+                                let isSelected = selectedCategoryId == category.id
+                                Button {
+                                    selectedCategoryId = category.id
+                                    selectedColor = category.colorName
+                                } label: {
+                                    HStack(spacing: 5) {
+                                        Image(systemName: category.icon)
+                                            .font(.system(size: 11))
+                                        Text(category.name)
+                                            .font(.system(size: 12, weight: .medium))
+                                    }
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 7)
+                                    .background(
+                                        isSelected
+                                            ? OrbitTheme.color(for: category.colorName).opacity(0.2)
+                                            : Color.gray.opacity(0.08),
+                                        in: Capsule()
+                                    )
+                                    .foregroundStyle(
+                                        isSelected
+                                            ? OrbitTheme.color(for: category.colorName)
+                                            : .secondary
+                                    )
+                                    .overlay(
+                                        isSelected
+                                            ? Capsule().stroke(OrbitTheme.color(for: category.colorName).opacity(0.4), lineWidth: 1.5)
+                                            : nil
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
                     }
 
                     // Icon picker
@@ -140,6 +185,44 @@ struct AddHabitSheet: View {
                         }
                     }
 
+                    // Schedule
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Schedule")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(.secondary)
+
+                        HStack(spacing: 6) {
+                            let dayLabels = ["S", "M", "T", "W", "T", "F", "S"]
+                            // weekday values: 1=Sun, 2=Mon, ..., 7=Sat
+                            ForEach(1...7, id: \.self) { weekday in
+                                let isOn = scheduledDays.contains(weekday)
+                                Button {
+                                    if isOn && scheduledDays.count > 1 {
+                                        scheduledDays.remove(weekday)
+                                    } else {
+                                        scheduledDays.insert(weekday)
+                                    }
+                                } label: {
+                                    Text(dayLabels[weekday - 1])
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .frame(width: 34, height: 34)
+                                        .background(
+                                            isOn
+                                                ? OrbitTheme.color(for: selectedColor).opacity(0.2)
+                                                : Color.gray.opacity(0.08),
+                                            in: RoundedRectangle(cornerRadius: 8)
+                                        )
+                                        .foregroundStyle(
+                                            isOn
+                                                ? OrbitTheme.color(for: selectedColor)
+                                                : .secondary.opacity(0.5)
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+
                     // Preview
                     if !name.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
@@ -186,7 +269,9 @@ struct AddHabitSheet: View {
                         name: name,
                         icon: selectedIcon,
                         colorName: selectedColor,
-                        targetDaysPerWeek: targetDays
+                        targetDaysPerWeek: targetDays,
+                        categoryId: selectedCategoryId,
+                        scheduledDays: scheduledDays
                     )
                     store.addHabit(habit)
                     dismiss()
@@ -204,6 +289,9 @@ struct AddHabitSheet: View {
             }
             .padding(20)
         }
-        .frame(width: 420, height: 560)
+        .frame(width: 420, height: 680)
+        .onAppear {
+            selectedCategoryId = store.categories.first?.id
+        }
     }
 }
