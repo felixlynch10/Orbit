@@ -27,20 +27,49 @@ struct ContentView: View {
         NavigationSplitView {
             SidebarView(selection: $selection, showingAddSheet: $showingAddSheet)
         } detail: {
-            Group {
-                switch selection {
-                case .today:
-                    DashboardView(showingAddSheet: $showingAddSheet)
-                case .routines:
-                    RoutineListView()
-                case .trends:
-                    TrendChartsView()
-                case .weekly:
-                    WeeklyGridView()
-                case .allHabits:
-                    AllHabitsView(showingAddSheet: $showingAddSheet)
-                case .none:
-                    DashboardView(showingAddSheet: $showingAddSheet)
+            VStack(spacing: 0) {
+                OrbitalSystemView(
+                    habits: store.habits,
+                    categories: store.categories,
+                    routines: store.routines,
+                    selectedDate: store.selectedDate,
+                    completionRate: store.todayCompletionRate,
+                    focus: store.orbitalFocus
+                )
+                .frame(height: 200)
+                .clipShape(RoundedRectangle(cornerRadius: OrbitTheme.cardRadius))
+                .padding(.horizontal, 30)
+                .padding(.top, 16)
+
+                Group {
+                    switch selection {
+                    case .today:
+                        DashboardView(showingAddSheet: $showingAddSheet)
+                    case .routines:
+                        RoutineListView()
+                    case .trends:
+                        TrendChartsView()
+                    case .weekly:
+                        WeeklyGridView()
+                    case .allHabits:
+                        AllHabitsView(showingAddSheet: $showingAddSheet)
+                    case .none:
+                        DashboardView(showingAddSheet: $showingAddSheet)
+                    }
+                }
+            }
+            .onChange(of: selection) { _, newValue in
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                    switch newValue {
+                    case .today, .allHabits, .none:
+                        store.orbitalFocus = .solarSystem
+                    case .routines:
+                        store.orbitalFocus = .routines
+                    case .trends:
+                        store.orbitalFocus = .trends()
+                    case .weekly:
+                        store.orbitalFocus = .weekly
+                    }
                 }
             }
         }

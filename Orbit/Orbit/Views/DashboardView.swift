@@ -102,14 +102,6 @@ struct DashboardView: View {
                 Spacer()
             }
 
-            // Orbital system hero
-            OrbitalSystemView(
-                habits: store.habits,
-                selectedDate: store.selectedDate,
-                completionRate: store.todayCompletionRate
-            )
-            .frame(height: 280)
-            .clipShape(RoundedRectangle(cornerRadius: OrbitTheme.cardRadius))
         }
     }
 
