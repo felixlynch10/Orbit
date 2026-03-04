@@ -50,7 +50,8 @@ struct OrbitalSystemView: View {
 
                 for (i, habit) in habits.enumerated() {
                     let orbitFraction = CGFloat(i + 1) / CGFloat(habitCount + 1)
-                    let orbitRadius = viewRadius * (0.25 + orbitFraction * 0.55)
+                    // Wider spread — outer planets can drift slightly off the banner
+                    let orbitRadius = viewRadius * (0.30 + orbitFraction * 0.90)
 
                     // Kepler-ish speed: inner orbits faster
                     let speed = 0.3 / sqrt(Double(orbitFraction))
