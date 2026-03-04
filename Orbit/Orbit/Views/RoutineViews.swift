@@ -103,6 +103,7 @@ struct RoutineCardView: View {
     }
 
     @State private var isExpanded = false
+    @State private var showFocusMode = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -144,6 +145,17 @@ struct RoutineCardView: View {
 
                     MiniRingView(progress: progress, color: color)
 
+                    Button {
+                        showFocusMode = true
+                    } label: {
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(color)
+                            .frame(width: 26, height: 26)
+                            .background(color.opacity(0.12), in: Circle())
+                    }
+                    .buttonStyle(.plain)
+
                     Image(systemName: "chevron.right")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(.tertiary)
@@ -181,6 +193,11 @@ struct RoutineCardView: View {
             }
         }
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: OrbitTheme.cardRadius))
+        .sheet(isPresented: $showFocusMode) {
+            FocusModeView(routineId: routine.id, isPresented: $showFocusMode)
+                .environmentObject(store)
+                .frame(minWidth: 600, minHeight: 400)
+        }
     }
 }
 
