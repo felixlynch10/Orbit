@@ -256,6 +256,7 @@ struct AddRoutineSheet: View {
     @State private var scheduledDays: Set<Int> = Set(2...6) // weekdays by default
     @State private var steps: [StepDraft] = []
     @State private var newStepName = ""
+    @State private var newStepTime = ""
 
     struct StepDraft: Identifiable {
         let id = UUID()
@@ -402,6 +403,13 @@ struct AddRoutineSheet: View {
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(.secondary)
 
+                        let totalEst = steps.compactMap(\.timeEstimate).reduce(0, +)
+                        if totalEst > 0 {
+                            Text("Total: ~\(totalEst) min")
+                                .font(.system(size: 12))
+                                .foregroundStyle(.tertiary)
+                        }
+
                         ForEach(Array(steps.enumerated()), id: \.element.id) { idx, step in
                             HStack(spacing: 8) {
                                 Text("\(idx + 1).")
@@ -416,6 +424,11 @@ struct AddRoutineSheet: View {
                                         .foregroundStyle(.tertiary)
                                 }
                                 Spacer()
+                                if let est = step.timeEstimate {
+                                    Text("\(est)m")
+                                        .font(OrbitTheme.mono(11))
+                                        .foregroundStyle(.tertiary)
+                                }
                                 Button {
                                     steps.remove(at: idx)
                                 } label: {
@@ -435,6 +448,13 @@ struct AddRoutineSheet: View {
                             TextField("Add a step...", text: $newStepName)
                                 .textFieldStyle(.plain)
                                 .font(.system(size: 13))
+                                .onSubmit { addStep() }
+
+                            TextField("min", text: $newStepTime)
+                                .textFieldStyle(.plain)
+                                .font(OrbitTheme.mono(12))
+                                .frame(width: 36)
+                                .multilineTextAlignment(.center)
                                 .onSubmit { addStep() }
 
                             Button {
@@ -530,7 +550,9 @@ struct AddRoutineSheet: View {
     private func addStep() {
         let trimmed = newStepName.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty else { return }
-        steps.append(StepDraft(name: trimmed))
+        let time = Int(newStepTime.trimmingCharacters(in: .whitespaces))
+        steps.append(StepDraft(name: trimmed, timeEstimate: time))
         newStepName = ""
+        newStepTime = ""
     }
 }
