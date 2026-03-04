@@ -15,16 +15,14 @@ struct OrbitalSystemView: View {
     private let cellSize: CGFloat = 6.5
     private let bgDarkness: CGFloat = 0.12
 
-    // Camera: current (lerped each frame) and target
+    // Camera: current (lerped each frame)
     @State private var camX: CGFloat = 0
     @State private var camY: CGFloat = 0
     @State private var camZoom: CGFloat = 1.0
-    @State private var targetX: CGFloat = 0
-    @State private var targetY: CGFloat = 0
-    @State private var targetZoom: CGFloat = 1.0
+    @State private var lastFrameTime: Double = 0
 
-    // Lerp speed (0→1, higher = faster catch-up)
-    private let lerpRate: CGFloat = 0.08
+    // Exponential decay half-life in seconds (lower = snappier)
+    private let smoothingHalfLife: Double = 0.12
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { timeline in
@@ -128,26 +126,31 @@ struct OrbitalSystemView: View {
             }
         }
 
-        // Lerp camera toward target
-        // For center (0,0) targets, use absolute screen center
+        // Smooth camera with time-based exponential decay
         let absTargetX = newTargetZoom > 1.01 ? newTargetX : centerX
         let absTargetY = newTargetZoom > 1.01 ? newTargetY : centerY
 
-        let newCamX = camX + (absTargetX - camX) * lerpRate
-        let newCamY = camY + (absTargetY - camY) * lerpRate
-        let newCamZoom = camZoom + (newTargetZoom - camZoom) * lerpRate
+        // Compute delta-time based decay factor
+        let dt = lastFrameTime > 0 ? min(time - lastFrameTime, 0.1) : 1.0 / 30.0
+        let decay = CGFloat(pow(2.0, -dt / smoothingHalfLife))
+        let snapThreshold: CGFloat = 0.5 // snap when close enough to avoid micro-oscillation
 
-        // Update state (deferred to avoid modifying state during view update)
+        var frameX = camX * decay + absTargetX * (1 - decay)
+        var frameY = camY * decay + absTargetY * (1 - decay)
+        var frameZoom = camZoom * decay + newTargetZoom * (1 - decay)
+
+        // Snap to target when very close
+        if abs(frameX - absTargetX) < snapThreshold { frameX = absTargetX }
+        if abs(frameY - absTargetY) < snapThreshold { frameY = absTargetY }
+        if abs(frameZoom - newTargetZoom) < 0.005 { frameZoom = newTargetZoom }
+
+        // Write back for next frame (deferred to avoid state mutation during render)
         DispatchQueue.main.async {
-            camX = newCamX
-            camY = newCamY
-            camZoom = newCamZoom
+            camX = frameX
+            camY = frameY
+            camZoom = frameZoom
+            lastFrameTime = time
         }
-
-        // Use the lerped values for this frame
-        let frameX = newCamX
-        let frameY = newCamY
-        let frameZoom = newCamZoom
 
         // --- Fill background ---
         context.fill(
@@ -254,6 +257,7 @@ struct OrbitalSystemView: View {
         }()
         let isRoutineFocus = focus == .routines
         let isWeeklyFocus = focus == .weekly
+        let hasFocus = focusedCategoryId != nil || focusedHabitId != nil
 
         let routineHabitIds: Set<UUID> = {
             guard isRoutineFocus else { return [] }
@@ -270,6 +274,47 @@ struct OrbitalSystemView: View {
             return Set(habits.filter { $0.isScheduled(on: selectedDate) }.map { $0.id })
         }()
 
+        // --- Reticle target position (screen space) ---
+        // Find the primary focus target's screen position for crosshairs
+        var reticleX: CGFloat = 0
+        var reticleY: CGFloat = 0
+        var reticleRadius: CGFloat = 0
+        var hasReticle = false
+
+        if let fcId = focusedCategoryId {
+            if let planet = planets.first(where: { $0.categoryId == fcId }) {
+                reticleX = planet.screenX
+                reticleY = planet.screenY
+                reticleRadius = planet.screenRadius
+                hasReticle = true
+            }
+        }
+        if let fhId = focusedHabitId {
+            if let moon = moons.first(where: { $0.habitId == fhId }) {
+                reticleX = moon.screenX
+                reticleY = moon.screenY
+                reticleRadius = moon.screenRadius
+                hasReticle = true
+            } else if focusedCategoryId == nil {
+                // Trend focus on habit — find its category planet as fallback
+                if let habit = habits.first(where: { $0.id == fhId }),
+                   let catId = habit.categoryId,
+                   let planet = planets.first(where: { $0.categoryId == catId }) {
+                    reticleX = planet.screenX
+                    reticleY = planet.screenY
+                    reticleRadius = planet.screenRadius
+                    hasReticle = true
+                }
+            }
+        }
+
+        // Reticle geometry
+        let bracketSize = max(reticleRadius * 2.5, cellSize * 8)
+        let bracketThickness = cellSize * 1.0
+        let bracketCornerLen = bracketSize * 0.3
+        let crosshairGap = reticleRadius * 1.6 // gap around the target so lines don't overlap it
+        let crosshairThickness = cellSize * 0.9
+
         // --- Render grid ---
         for row in 0..<rows {
             for col in 0..<cols {
@@ -277,6 +322,10 @@ struct OrbitalSystemView: View {
                 let y = gridOffsetY + CGFloat(row) * cellSize + cellSize / 2
 
                 var darkness: CGFloat = bgDarkness
+
+                // Global dimming when a target is focused
+                let globalDim: CGFloat = hasFocus ? 0.06 : bgDarkness
+                darkness = globalDim
 
                 // Orbit rings (in screen space)
                 for planet in planets {
@@ -286,7 +335,11 @@ struct OrbitalSystemView: View {
                     if ringDelta < ringThickness {
                         let ringStrength = 1.0 - ringDelta / ringThickness
                         var ringDarkness: CGFloat = 0.15 * ringStrength + bgDarkness
-                        if let fc = focusedCategoryId, planet.categoryId != fc { ringDarkness *= 0.4 }
+                        if hasFocus {
+                            // Only show focused planet's orbit ring prominently
+                            let isFocusedRing = focusedCategoryId == planet.categoryId
+                            ringDarkness *= isFocusedRing ? 1.2 : 0.3
+                        }
                         if isRoutineFocus { ringDarkness *= 0.5 }
                         darkness = max(darkness, ringDarkness)
                     }
@@ -301,6 +354,7 @@ struct OrbitalSystemView: View {
                     let light = max(0, -0.4 * nx - 0.5 * ny + 0.6 * nz)
                     var brightness: CGFloat = 1.0
                     if case .trends = focus { brightness = 0.7 + CGFloat(completionRate) * 0.3 }
+                    if hasFocus { brightness *= 0.5 } // dim sun when targeting
                     let sd = (0.5 + light * 0.4) * brightness
                     darkness = max(darkness, sd * (1.0 - sunDist / sunSR * 0.2))
                 }
@@ -311,7 +365,15 @@ struct OrbitalSystemView: View {
                     let pr = planet.screenRadius
 
                     var dim: CGFloat = 1.0
-                    if let fc = focusedCategoryId, planet.categoryId != fc { dim = 0.25 }
+                    if let fc = focusedCategoryId, planet.categoryId != fc { dim = 0.15 }
+                    if focusedHabitId != nil && focusedCategoryId == nil {
+                        // Habit-level focus: dim all planets except the parent
+                        if let fhId = focusedHabitId,
+                           let habit = habits.first(where: { $0.id == fhId }),
+                           habit.categoryId != planet.categoryId {
+                            dim = 0.15
+                        }
+                    }
                     if isWeeklyFocus {
                         let catHabits = habits.filter { $0.categoryId == planet.categoryId }
                         let hasScheduled = catHabits.contains { scheduledTodayIds.contains($0.id) }
@@ -321,14 +383,6 @@ struct OrbitalSystemView: View {
                         let catHabits = habits.filter { $0.categoryId == planet.categoryId }
                         let hasRoutineHabit = catHabits.contains { routineHabitIds.contains($0.id) }
                         dim = hasRoutineHabit ? 1.0 : 0.3
-                    }
-
-                    // Focus highlight ring
-                    if focusedCategoryId == planet.categoryId {
-                        if dist < pr * 2.0 && dist > pr * 1.2 {
-                            let ht = (dist - pr * 1.2) / (pr * 0.8)
-                            darkness = max(darkness, 0.45 * (1.0 - ht))
-                        }
                     }
 
                     // Completion glow ring
@@ -354,25 +408,15 @@ struct OrbitalSystemView: View {
                 for moon in moons {
                     let dist = hypot(x - moon.screenX, y - moon.screenY)
                     let mr = moon.screenRadius
-
                     let isFocused = focusedHabitId == moon.habitId
 
-                    // At default zoom, only show focused moon
                     guard showMoons || isFocused else { continue }
 
                     var dim: CGFloat = 1.0
                     if isRoutineFocus && !routineHabitIds.contains(moon.habitId) { dim = 0.15 }
                     if isWeeklyFocus && !scheduledTodayIds.contains(moon.habitId) { dim = 0.25 }
-
-                    // Focus highlight ring (bright, pulsing)
-                    if isFocused {
-                        let pulseScale: CGFloat = 1.0 + 0.15 * CGFloat(sin(time * 3.0))
-                        let highlightOuter = mr * 2.2 * pulseScale
-                        if dist < highlightOuter && dist > mr * 1.1 {
-                            let ht = (dist - mr * 1.1) / (highlightOuter - mr * 1.1)
-                            darkness = max(darkness, 0.5 * (1.0 - ht))
-                        }
-                    }
+                    // Dim non-focused moons when a specific habit is targeted
+                    if focusedHabitId != nil && !isFocused { dim = 0.2 }
 
                     // Completion glow
                     if moon.completedToday && dist < mr * 1.6 && dist > mr {
@@ -392,6 +436,75 @@ struct OrbitalSystemView: View {
                     }
                 }
 
+                // --- Targeting reticle ---
+                if hasReticle {
+                    let dx = x - reticleX
+                    let dy = y - reticleY
+                    let absDx = abs(dx)
+                    let absDy = abs(dy)
+                    let distToTarget = hypot(dx, dy)
+
+                    // Crosshair lines: horizontal and vertical through target, with gap around it
+                    // Dashed pattern for halftone feel
+                    let dashPeriod = cellSize * 4
+                    let dashDuty: CGFloat = 0.55
+
+                    // Horizontal crosshair
+                    if absDy < crosshairThickness && distToTarget > crosshairGap {
+                        let dashPhase = abs(dx) / dashPeriod
+                        let isDash = (dashPhase - floor(dashPhase)) < dashDuty
+                        if isDash {
+                            let fadeFromCenter = min(1.0, (distToTarget - crosshairGap) / (cellSize * 4))
+                            let fadeFromEdge = max(0, 1.0 - absDx / (size.width * 0.45))
+                            let lineStrength = 0.55 * fadeFromCenter * fadeFromEdge * (1.0 - absDy / crosshairThickness)
+                            darkness = max(darkness, lineStrength)
+                        }
+                    }
+
+                    // Vertical crosshair
+                    if absDx < crosshairThickness && distToTarget > crosshairGap {
+                        let dashPhase = abs(dy) / dashPeriod
+                        let isDash = (dashPhase - floor(dashPhase)) < dashDuty
+                        if isDash {
+                            let fadeFromCenter = min(1.0, (distToTarget - crosshairGap) / (cellSize * 4))
+                            let fadeFromEdge = max(0, 1.0 - absDy / (size.height * 0.45))
+                            let lineStrength = 0.55 * fadeFromCenter * fadeFromEdge * (1.0 - absDx / crosshairThickness)
+                            darkness = max(darkness, lineStrength)
+                        }
+                    }
+
+                    // Corner brackets: 4 L-shaped corners around the target
+                    let halfBracket = bracketSize / 2
+                    let corners: [(CGFloat, CGFloat)] = [
+                        (reticleX - halfBracket, reticleY - halfBracket), // top-left
+                        (reticleX + halfBracket, reticleY - halfBracket), // top-right
+                        (reticleX - halfBracket, reticleY + halfBracket), // bottom-left
+                        (reticleX + halfBracket, reticleY + halfBracket), // bottom-right
+                    ]
+                    for (ci, corner) in corners.enumerated() {
+                        let cx = corner.0
+                        let cy = corner.1
+                        let relX = x - cx
+                        let relY = y - cy
+
+                        // Horizontal arm of the L
+                        let hDir: CGFloat = (ci % 2 == 0) ? 1 : -1 // inward direction
+                        let armX = relX * hDir
+                        if abs(relY) < bracketThickness && armX >= 0 && armX < bracketCornerLen {
+                            let strength: CGFloat = 0.7 * (1.0 - abs(relY) / bracketThickness)
+                            darkness = max(darkness, strength)
+                        }
+
+                        // Vertical arm of the L
+                        let vDir: CGFloat = (ci < 2) ? 1 : -1 // inward direction
+                        let armY = relY * vDir
+                        if abs(relX) < bracketThickness && armY >= 0 && armY < bracketCornerLen {
+                            let strength: CGFloat = 0.7 * (1.0 - abs(relX) / bracketThickness)
+                            darkness = max(darkness, strength)
+                        }
+                    }
+                }
+
                 // Routine connecting lines
                 if isRoutineFocus {
                     for routine in routines {
@@ -405,11 +518,11 @@ struct OrbitalSystemView: View {
                             let m1 = linked[i], m2 = linked[i + 1]
                             let lineLen = hypot(m2.screenX - m1.screenX, m2.screenY - m1.screenY)
                             guard lineLen > 0 else { continue }
-                            let dx = (m2.screenX - m1.screenX) / lineLen
-                            let dy = (m2.screenY - m1.screenY) / lineLen
-                            let t = max(0, min(lineLen, (x - m1.screenX) * dx + (y - m1.screenY) * dy))
-                            let cx = m1.screenX + dx * t
-                            let cy = m1.screenY + dy * t
+                            let ldx = (m2.screenX - m1.screenX) / lineLen
+                            let ldy = (m2.screenY - m1.screenY) / lineLen
+                            let t = max(0, min(lineLen, (x - m1.screenX) * ldx + (y - m1.screenY) * ldy))
+                            let cx = m1.screenX + ldx * t
+                            let cy = m1.screenY + ldy * t
                             let distToLine = hypot(x - cx, y - cy)
 
                             if distToLine < cellSize * 2.0 {

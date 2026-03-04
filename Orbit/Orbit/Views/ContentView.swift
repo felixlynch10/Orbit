@@ -123,9 +123,10 @@ struct WeeklyGridView: View {
                             HStack(spacing: 8) {
                                 Image(systemName: habit.icon)
                                     .foregroundStyle(OrbitTheme.color(for: habit.colorName))
-                                    .font(.system(size: 14))
+                                    .font(OrbitTheme.mono(14))
                                 Text(habit.name)
-                                    .font(.system(size: 15, weight: .semibold))
+                                    .font(OrbitTheme.mono(15, weight: .semibold))
+                                    .lineLimit(1)
                                 Spacer()
                                 Text("\(Int(habit.completionRate(days: 7) * 100))%")
                                     .font(OrbitTheme.mono(13))
@@ -136,7 +137,7 @@ struct WeeklyGridView: View {
                                 HStack(spacing: OrbitTheme.gridSpacing) {
                                     ForEach(dayLabels, id: \.self) { label in
                                         Text(label)
-                                            .font(.system(size: 9, weight: .medium))
+                                            .font(OrbitTheme.mono(9, weight: .medium))
                                             .foregroundStyle(.secondary)
                                             .frame(width: OrbitTheme.gridCellSize, height: 14)
                                     }
@@ -242,7 +243,7 @@ struct AllHabitsView: View {
                             showingAddSheet = true
                         } label: {
                             Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 22))
+                                .font(OrbitTheme.mono(22))
                                 .foregroundStyle(OrbitTheme.accent)
                         }
                         .buttonStyle(.plain)
@@ -274,14 +275,16 @@ struct HabitDetailCard: View {
                         .fill(OrbitTheme.color(for: habit.colorName).opacity(0.15))
                         .frame(width: 36, height: 36)
                     Image(systemName: habit.icon)
-                        .font(.system(size: 16))
+                        .font(OrbitTheme.mono(16))
                         .foregroundStyle(OrbitTheme.color(for: habit.colorName))
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(habit.name)
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(OrbitTheme.mono(15, weight: .semibold))
+                        .lineLimit(1)
                     Text("\(habit.targetDaysPerWeek)x per week")
-                        .font(.system(size: 12))
+                        .font(OrbitTheme.mono(12))
+                        .lineLimit(1)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -291,7 +294,7 @@ struct HabitDetailCard: View {
                     }
                 } label: {
                     Image(systemName: "trash")
-                        .font(.system(size: 12))
+                        .font(OrbitTheme.mono(12))
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
@@ -317,7 +320,7 @@ struct StatPill: View {
             Text(value)
                 .font(OrbitTheme.mono(14))
             Text(label)
-                .font(.system(size: 10))
+                .font(OrbitTheme.mono(10))
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)

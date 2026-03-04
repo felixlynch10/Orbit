@@ -24,7 +24,7 @@ struct AddHabitSheet: View {
                     dismiss()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 20))
+                        .font(OrbitTheme.mono(20))
                         .foregroundStyle(.tertiary)
                 }
                 .buttonStyle(.plain)
@@ -38,11 +38,11 @@ struct AddHabitSheet: View {
                     // Name
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Name")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(OrbitTheme.mono(13, weight: .semibold))
                             .foregroundStyle(.secondary)
                         TextField("e.g. Exercise, Read, Meditate...", text: $name)
                             .textFieldStyle(.plain)
-                            .font(.system(size: 15))
+                            .font(OrbitTheme.mono(14, weight: .medium))
                             .padding(10)
                             .background(Color.gray.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
                     }
@@ -50,42 +50,46 @@ struct AddHabitSheet: View {
                     // Category picker
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Category")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(OrbitTheme.mono(13, weight: .semibold))
                             .foregroundStyle(.secondary)
 
-                        HStack(spacing: 8) {
-                            ForEach(store.categories) { category in
-                                let isSelected = selectedCategoryId == category.id
-                                Button {
-                                    selectedCategoryId = category.id
-                                    selectedColor = category.colorName
-                                } label: {
-                                    HStack(spacing: 5) {
-                                        Image(systemName: category.icon)
-                                            .font(.system(size: 11))
-                                        Text(category.name)
-                                            .font(.system(size: 12, weight: .medium))
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(store.categories) { category in
+                                    let isSelected = selectedCategoryId == category.id
+                                    Button {
+                                        selectedCategoryId = category.id
+                                        selectedColor = category.colorName
+                                    } label: {
+                                        HStack(spacing: 5) {
+                                            Image(systemName: category.icon)
+                                                .font(OrbitTheme.mono(11))
+                                            Text(category.name)
+                                                .font(OrbitTheme.mono(11, weight: .medium))
+                                                .lineLimit(1)
+                                                .fixedSize()
+                                        }
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 7)
+                                        .background(
+                                            isSelected
+                                                ? OrbitTheme.color(for: category.colorName).opacity(0.2)
+                                                : Color.gray.opacity(0.08),
+                                            in: Capsule()
+                                        )
+                                        .foregroundStyle(
+                                            isSelected
+                                                ? OrbitTheme.color(for: category.colorName)
+                                                : .secondary
+                                        )
+                                        .overlay(
+                                            isSelected
+                                                ? Capsule().stroke(OrbitTheme.color(for: category.colorName).opacity(0.4), lineWidth: 1.5)
+                                                : nil
+                                        )
                                     }
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 7)
-                                    .background(
-                                        isSelected
-                                            ? OrbitTheme.color(for: category.colorName).opacity(0.2)
-                                            : Color.gray.opacity(0.08),
-                                        in: Capsule()
-                                    )
-                                    .foregroundStyle(
-                                        isSelected
-                                            ? OrbitTheme.color(for: category.colorName)
-                                            : .secondary
-                                    )
-                                    .overlay(
-                                        isSelected
-                                            ? Capsule().stroke(OrbitTheme.color(for: category.colorName).opacity(0.4), lineWidth: 1.5)
-                                            : nil
-                                    )
+                                    .buttonStyle(.plain)
                                 }
-                                .buttonStyle(.plain)
                             }
                         }
                     }
@@ -93,7 +97,7 @@ struct AddHabitSheet: View {
                     // Icon picker
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Icon")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(OrbitTheme.mono(13, weight: .semibold))
                             .foregroundStyle(.secondary)
 
                         LazyVGrid(columns: columns, spacing: 8) {
@@ -102,7 +106,7 @@ struct AddHabitSheet: View {
                                     selectedIcon = icon
                                 } label: {
                                     Image(systemName: icon)
-                                        .font(.system(size: 16))
+                                        .font(OrbitTheme.mono(16))
                                         .frame(width: 40, height: 40)
                                         .background(
                                             selectedIcon == icon
@@ -130,7 +134,7 @@ struct AddHabitSheet: View {
                     // Color picker
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Color")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(OrbitTheme.mono(13, weight: .semibold))
                             .foregroundStyle(.secondary)
 
                         HStack(spacing: 10) {
@@ -157,7 +161,7 @@ struct AddHabitSheet: View {
                     // Target days
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Target: \(targetDays)x per week")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(OrbitTheme.mono(13, weight: .semibold))
                             .foregroundStyle(.secondary)
 
                         HStack(spacing: 6) {
@@ -188,7 +192,7 @@ struct AddHabitSheet: View {
                     // Schedule
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Schedule")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(OrbitTheme.mono(13, weight: .semibold))
                             .foregroundStyle(.secondary)
 
                         HStack(spacing: 6) {
@@ -204,7 +208,7 @@ struct AddHabitSheet: View {
                                     }
                                 } label: {
                                     Text(dayLabels[weekday - 1])
-                                        .font(.system(size: 12, weight: .semibold))
+                                        .font(OrbitTheme.mono(12, weight: .semibold))
                                         .frame(width: 34, height: 34)
                                         .background(
                                             isOn
@@ -227,7 +231,7 @@ struct AddHabitSheet: View {
                     if !name.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Preview")
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(OrbitTheme.mono(13, weight: .semibold))
                                 .foregroundStyle(.secondary)
 
                             HStack(spacing: 10) {
@@ -236,11 +240,11 @@ struct AddHabitSheet: View {
                                         .fill(OrbitTheme.color(for: selectedColor).opacity(0.15))
                                         .frame(width: 36, height: 36)
                                     Image(systemName: selectedIcon)
-                                        .font(.system(size: 15))
+                                        .font(OrbitTheme.mono(15))
                                         .foregroundStyle(OrbitTheme.color(for: selectedColor))
                                 }
                                 Text(name)
-                                    .font(.system(size: 14, weight: .semibold))
+                                    .font(OrbitTheme.mono(14, weight: .semibold))
                             }
                             .padding(12)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -277,7 +281,7 @@ struct AddHabitSheet: View {
                     dismiss()
                 } label: {
                     Text("Launch Orbit")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(OrbitTheme.mono(13, weight: .semibold))
                         .padding(.horizontal, 20)
                         .padding(.vertical, 8)
                         .background(OrbitTheme.accent, in: Capsule())

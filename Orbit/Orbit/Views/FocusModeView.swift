@@ -94,7 +94,7 @@ struct FocusModeView: View {
                     .font(OrbitTheme.mono(14))
                     .foregroundStyle(.white.opacity(0.5))
                 Text("Step \(currentStepIndex + 1) of \(sortedSteps.count)")
-                    .font(.system(size: 12))
+                    .font(OrbitTheme.mono(12))
                     .foregroundStyle(.white.opacity(0.3))
             }
 
@@ -112,7 +112,7 @@ struct FocusModeView: View {
                 isPresented = false
             } label: {
                 Text("Exit")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(OrbitTheme.mono(13, weight: .medium))
                     .foregroundStyle(.white.opacity(0.5))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
@@ -147,14 +147,14 @@ struct FocusModeView: View {
 
             // Step name
             Text(step.name)
-                .font(.system(size: 28, weight: .bold))
+                .font(OrbitTheme.mono(28, weight: .bold))
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
 
             // Time estimate
             if let est = step.timeEstimate {
                 Text("~\(est) min")
-                    .font(.system(size: 15))
+                    .font(OrbitTheme.mono(15))
                     .foregroundStyle(.white.opacity(0.4))
             }
 
@@ -164,9 +164,9 @@ struct FocusModeView: View {
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(OrbitTheme.mono(16, weight: .bold))
                     Text("Complete Step")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(OrbitTheme.mono(16, weight: .semibold))
                 }
                 .foregroundStyle(.black)
                 .padding(.horizontal, 32)
@@ -199,14 +199,14 @@ struct FocusModeView: View {
             if let next = nextStep {
                 HStack(spacing: 8) {
                     Text("Next:")
-                        .font(.system(size: 12))
+                        .font(OrbitTheme.mono(12))
                         .foregroundStyle(.white.opacity(0.3))
                     Text(next.name)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(OrbitTheme.mono(13, weight: .medium))
                         .foregroundStyle(.white.opacity(0.5))
                     if let est = next.timeEstimate {
                         Text("(\(est)m)")
-                            .font(.system(size: 11))
+                            .font(OrbitTheme.mono(11))
                             .foregroundStyle(.white.opacity(0.2))
                     }
                     Spacer()
@@ -221,9 +221,9 @@ struct FocusModeView: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "chevron.left")
-                                .font(.system(size: 10, weight: .semibold))
+                                .font(OrbitTheme.mono(10, weight: .semibold))
                             Text("Back")
-                                .font(.system(size: 12, weight: .medium))
+                                .font(OrbitTheme.mono(12, weight: .medium))
                         }
                         .foregroundStyle(.white.opacity(0.3))
                     }
@@ -237,9 +237,9 @@ struct FocusModeView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Text("Skip")
-                            .font(.system(size: 12, weight: .medium))
+                            .font(OrbitTheme.mono(12, weight: .medium))
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(OrbitTheme.mono(10, weight: .semibold))
                     }
                     .foregroundStyle(.white.opacity(0.3))
                 }
@@ -253,22 +253,22 @@ struct FocusModeView: View {
     private var completionView: some View {
         VStack(spacing: 24) {
             Image(systemName: "checkmark.seal.fill")
-                .font(.system(size: 64))
+                .font(OrbitTheme.mono(64))
                 .foregroundStyle(color)
 
             Text("Routine Complete!")
-                .font(.system(size: 28, weight: .bold))
+                .font(OrbitTheme.mono(28, weight: .bold))
                 .foregroundStyle(.white)
 
             Text("\(sortedSteps.count) steps in \(timerString)")
-                .font(.system(size: 16))
+                .font(OrbitTheme.mono(16))
                 .foregroundStyle(.white.opacity(0.5))
 
             Button {
                 isPresented = false
             } label: {
                 Text("Done")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(OrbitTheme.mono(15, weight: .semibold))
                     .foregroundStyle(.black)
                     .padding(.horizontal, 32)
                     .padding(.vertical, 12)

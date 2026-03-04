@@ -43,7 +43,7 @@ struct HalftoneModelView: View {
                             renderer.clearModel()
                         } label: {
                             Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 16))
+                                .font(OrbitTheme.mono(16))
                                 .foregroundStyle(.secondary)
                         }
                         .buttonStyle(.plain)
@@ -54,14 +54,14 @@ struct HalftoneModelView: View {
                 // Drop zone
                 VStack(spacing: 10) {
                     Image(systemName: "cube.transparent")
-                        .font(.system(size: compact ? 24 : 36))
+                        .font(OrbitTheme.mono(compact ? 24 : 36))
                         .foregroundStyle(OrbitTheme.accent.opacity(0.5))
                     if !compact {
                         Text("Drop a 3D model here")
-                            .font(.system(size: 13, weight: .medium))
+                            .font(OrbitTheme.mono(13, weight: .medium))
                             .foregroundStyle(.secondary)
                         Text(".obj  .usdz  .scn  .dae")
-                            .font(.system(size: 11))
+                            .font(OrbitTheme.mono(11))
                             .foregroundStyle(.tertiary)
                     }
                 }

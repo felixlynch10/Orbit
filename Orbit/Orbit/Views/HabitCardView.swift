@@ -36,12 +36,12 @@ struct HabitCardView: View {
 
                     if isCompleted {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 16, weight: .bold))
+                            .font(OrbitTheme.mono(16, weight: .bold))
                             .foregroundStyle(.white)
                             .transition(.scale.combined(with: .opacity))
                     } else {
                         Image(systemName: habit.icon)
-                            .font(.system(size: 15))
+                            .font(OrbitTheme.mono(15))
                             .foregroundStyle(color)
                     }
                 }
@@ -54,21 +54,24 @@ struct HabitCardView: View {
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(habit.name)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(OrbitTheme.mono(14, weight: .semibold))
+                        .lineLimit(1)
                         .strikethrough(isCompleted, color: .secondary)
                         .foregroundStyle(isCompleted ? .secondary : .primary)
 
                     HStack(spacing: 4) {
                         if habit.currentStreak() > 0 {
                             Image(systemName: "flame.fill")
-                                .font(.system(size: 9))
+                                .font(OrbitTheme.mono(9))
                                 .foregroundStyle(OrbitTheme.mars)
                             Text("\(habit.currentStreak())d streak")
-                                .font(.system(size: 11))
+                                .font(OrbitTheme.mono(11))
+                                .lineLimit(1)
                                 .foregroundStyle(.secondary)
                         } else {
                             Text("Start your streak!")
-                                .font(.system(size: 11))
+                                .font(OrbitTheme.mono(11))
+                                .lineLimit(1)
                                 .foregroundStyle(.tertiary)
                         }
                     }
@@ -135,7 +138,7 @@ struct HabitCardView: View {
                 }
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 9, weight: .bold))
+                    .font(OrbitTheme.mono(9, weight: .bold))
                     .foregroundStyle(.tertiary)
                     .frame(width: 20, height: 20)
                     .background(Color.gray.opacity(0.08), in: Circle())
@@ -180,18 +183,20 @@ struct HabitDetailPopover: View {
                         .fill(color.opacity(0.15))
                         .frame(width: 44, height: 44)
                     Image(systemName: habit.icon)
-                        .font(.system(size: 20))
+                        .font(OrbitTheme.mono(20))
                         .foregroundStyle(color)
                 }
                 VStack(alignment: .leading, spacing: 3) {
                     Text(habit.name)
-                        .font(.system(size: 17, weight: .bold))
+                        .font(OrbitTheme.mono(17, weight: .bold))
+                        .lineLimit(1)
                     if let cat = category {
                         HStack(spacing: 4) {
                             Image(systemName: cat.icon)
-                                .font(.system(size: 10))
+                                .font(OrbitTheme.mono(10))
                             Text(cat.name)
-                                .font(.system(size: 12))
+                                .font(OrbitTheme.mono(12))
+                                .lineLimit(1)
                         }
                         .foregroundStyle(.secondary)
                     }
@@ -239,12 +244,12 @@ struct HabitDetailPopover: View {
     private func statItem(label: String, value: String, icon: String, tint: Color) -> some View {
         VStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.system(size: 14))
+                .font(OrbitTheme.mono(14))
                 .foregroundStyle(tint)
             Text(value)
                 .font(OrbitTheme.mono(16))
             Text(label)
-                .font(.system(size: 10))
+                .font(OrbitTheme.mono(10))
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
@@ -253,11 +258,11 @@ struct HabitDetailPopover: View {
     private func detailRow(label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .font(.system(size: 12))
+                .font(OrbitTheme.mono(12))
                 .foregroundStyle(.secondary)
             Spacer()
             Text(value)
-                .font(.system(size: 12, weight: .medium))
+                .font(OrbitTheme.mono(12, weight: .medium))
         }
     }
 

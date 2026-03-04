@@ -53,18 +53,20 @@ struct DashboardView: View {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(greeting)
-                        .font(.system(size: 28, weight: .bold))
+                        .font(OrbitTheme.mono(28, weight: .bold))
+                        .lineLimit(1)
 
                     HStack(spacing: 12) {
                         Text(dateString)
-                            .font(.system(size: 15))
+                            .font(OrbitTheme.mono(15))
+                            .lineLimit(1)
                             .foregroundStyle(.secondary)
 
                         if !isToday {
                             Button("Back to Today") {
                                 withAnimation { store.selectedDate = Date() }
                             }
-                            .font(.system(size: 12, weight: .medium))
+                            .font(OrbitTheme.mono(12, weight: .medium))
                             .foregroundStyle(OrbitTheme.accent)
                             .buttonStyle(.plain)
                         }
@@ -78,7 +80,7 @@ struct DashboardView: View {
                             }
                         } label: {
                             Image(systemName: "chevron.left")
-                                .font(.system(size: 11, weight: .semibold))
+                                .font(OrbitTheme.mono(11, weight: .semibold))
                                 .frame(width: 24, height: 24)
                                 .background(Color.gray.opacity(0.1), in: Circle())
                         }
@@ -90,7 +92,7 @@ struct DashboardView: View {
                             }
                         } label: {
                             Image(systemName: "chevron.right")
-                                .font(.system(size: 11, weight: .semibold))
+                                .font(OrbitTheme.mono(11, weight: .semibold))
                                 .frame(width: 24, height: 24)
                                 .background(Color.gray.opacity(0.1), in: Circle())
                         }
@@ -119,7 +121,7 @@ struct DashboardView: View {
 
                 VStack(spacing: 1) {
                     Text("Today")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(OrbitTheme.mono(11, weight: .medium))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -199,9 +201,9 @@ struct DashboardView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "plus")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(OrbitTheme.mono(11, weight: .bold))
                         Text("Add")
-                            .font(.system(size: 13, weight: .medium))
+                            .font(OrbitTheme.mono(13, weight: .medium))
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
@@ -271,7 +273,7 @@ struct StatCardView: View {
     var body: some View {
         VStack(spacing: 10) {
             Image(systemName: icon)
-                .font(.system(size: 20))
+                .font(OrbitTheme.mono(20))
                 .foregroundStyle(color)
 
             Text(value)
@@ -280,10 +282,10 @@ struct StatCardView: View {
 
             VStack(spacing: 1) {
                 Text(title)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(OrbitTheme.mono(11, weight: .medium))
                     .foregroundStyle(.secondary)
                 Text(unit)
-                    .font(.system(size: 10))
+                    .font(OrbitTheme.mono(10))
                     .foregroundStyle(.tertiary)
             }
         }

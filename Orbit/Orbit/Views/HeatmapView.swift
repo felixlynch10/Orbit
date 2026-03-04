@@ -62,11 +62,11 @@ struct HeatmapView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(title)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(OrbitTheme.mono(13, weight: .semibold))
                 Spacer()
                 // Month labels
                 Text(monthRange())
-                    .font(.system(size: 11))
+                    .font(OrbitTheme.mono(11))
                     .foregroundStyle(.tertiary)
             }
 
@@ -75,7 +75,7 @@ struct HeatmapView: View {
                 VStack(spacing: spacing) {
                     ForEach(0..<7, id: \.self) { row in
                         Text(dayLabels[row])
-                            .font(.system(size: 8))
+                            .font(OrbitTheme.mono(8))
                             .foregroundStyle(.tertiary)
                             .frame(width: 12, height: cellSize)
                     }

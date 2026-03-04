@@ -25,7 +25,7 @@ struct TrendChartsView: View {
                                 withAnimation { selectedRange = range }
                             } label: {
                                 Text(range.label)
-                                    .font(.system(size: 12, weight: .medium))
+                                    .font(OrbitTheme.mono(12, weight: .medium))
                                     .padding(.horizontal, 14)
                                     .padding(.vertical, 6)
                                     .background(
@@ -76,10 +76,11 @@ struct TrendChartsView: View {
                                     VStack(alignment: .leading, spacing: 10) {
                                         HStack(spacing: 6) {
                                             Image(systemName: cat.icon)
-                                                .font(.system(size: 12))
+                                                .font(OrbitTheme.mono(12))
                                                 .foregroundStyle(OrbitTheme.color(for: cat.colorName))
                                             Text(cat.name)
-                                                .font(.system(size: 14, weight: .semibold))
+                                                .font(OrbitTheme.mono(14, weight: .semibold))
+                                                .lineLimit(1)
                                         }
 
                                         TrendLineChart(
@@ -115,7 +116,7 @@ struct TrendChartsView: View {
             }
         } label: {
             Text(label)
-                .font(.system(size: 11, weight: .medium))
+                .font(OrbitTheme.mono(11, weight: .medium))
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
                 .background(

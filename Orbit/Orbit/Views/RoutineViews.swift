@@ -21,9 +21,9 @@ struct RoutineListView: View {
                         } label: {
                             HStack(spacing: 4) {
                                 Image(systemName: "plus")
-                                    .font(.system(size: 11, weight: .bold))
+                                    .font(OrbitTheme.mono(11, weight: .bold))
                                 Text("New Routine")
-                                    .font(.system(size: 13, weight: .medium))
+                                    .font(OrbitTheme.mono(13, weight: .medium))
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
@@ -36,13 +36,13 @@ struct RoutineListView: View {
                     if store.routines.isEmpty {
                         VStack(spacing: 12) {
                             Image(systemName: "list.bullet.rectangle")
-                                .font(.system(size: 36))
+                                .font(OrbitTheme.mono(36))
                                 .foregroundStyle(.tertiary)
                             Text("No routines yet")
-                                .font(.system(size: 15))
+                                .font(OrbitTheme.mono(15))
                                 .foregroundStyle(.secondary)
                             Text("Create a morning or night routine to build consistent sequences.")
-                                .font(.system(size: 13))
+                                .font(OrbitTheme.mono(13))
                                 .foregroundStyle(.tertiary)
                                 .multilineTextAlignment(.center)
                         }
@@ -54,7 +54,7 @@ struct RoutineListView: View {
                         if !scheduled.isEmpty {
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("Today")
-                                    .font(.system(size: 14, weight: .semibold))
+                                    .font(OrbitTheme.mono(14, weight: .semibold))
                                     .foregroundStyle(.secondary)
                                 ForEach(scheduled) { routine in
                                     RoutineCardView(routine: routine)
@@ -67,7 +67,7 @@ struct RoutineListView: View {
                         if !notScheduled.isEmpty {
                             VStack(alignment: .leading, spacing: 10) {
                                 Text("Other Routines")
-                                    .font(.system(size: 14, weight: .semibold))
+                                    .font(OrbitTheme.mono(14, weight: .semibold))
                                     .foregroundStyle(.secondary)
                                 ForEach(notScheduled) { routine in
                                     RoutineCardView(routine: routine)
@@ -119,24 +119,25 @@ struct RoutineCardView: View {
                             .fill(color.opacity(0.15))
                             .frame(width: 36, height: 36)
                         Image(systemName: routine.icon)
-                            .font(.system(size: 15))
+                            .font(OrbitTheme.mono(15))
                             .foregroundStyle(color)
                     }
 
                     VStack(alignment: .leading, spacing: 3) {
                         Text(routine.name)
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(OrbitTheme.mono(15, weight: .semibold))
+                            .lineLimit(1)
                         HStack(spacing: 8) {
                             Text(routine.type.rawValue)
-                                .font(.system(size: 11))
+                                .font(OrbitTheme.mono(11))
                                 .foregroundStyle(.secondary)
                             if let est = routine.totalEstimate {
                                 Text("~\(est) min")
-                                    .font(.system(size: 11))
+                                    .font(OrbitTheme.mono(11))
                                     .foregroundStyle(.tertiary)
                             }
                             Text("\(routine.completedStepCount(on: store.selectedDate))/\(routine.steps.count) steps")
-                                .font(.system(size: 11))
+                                .font(OrbitTheme.mono(11))
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -149,7 +150,7 @@ struct RoutineCardView: View {
                         showFocusMode = true
                     } label: {
                         Image(systemName: "play.fill")
-                            .font(.system(size: 10))
+                            .font(OrbitTheme.mono(10))
                             .foregroundStyle(color)
                             .frame(width: 26, height: 26)
                             .background(color.opacity(0.12), in: Circle())
@@ -157,7 +158,7 @@ struct RoutineCardView: View {
                     .buttonStyle(.plain)
 
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(OrbitTheme.mono(11, weight: .semibold))
                         .foregroundStyle(.tertiary)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 }
@@ -229,7 +230,7 @@ struct RoutineStepRow: View {
                         .frame(width: 24, height: 24)
                     if isCompleted {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(OrbitTheme.mono(11, weight: .bold))
                             .foregroundStyle(.white)
                     }
                 }
@@ -238,13 +239,14 @@ struct RoutineStepRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(step.name)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(OrbitTheme.mono(13, weight: .medium))
+                    .lineLimit(1)
                     .strikethrough(isCompleted, color: .secondary)
                     .foregroundStyle(isCompleted ? .secondary : .primary)
 
                 if step.habitId != nil {
                     Text("Linked habit")
-                        .font(.system(size: 10))
+                        .font(OrbitTheme.mono(10))
                         .foregroundStyle(.tertiary)
                 }
             }
@@ -293,7 +295,7 @@ struct AddRoutineSheet: View {
                     dismiss()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 20))
+                        .font(OrbitTheme.mono(20))
                         .foregroundStyle(.tertiary)
                 }
                 .buttonStyle(.plain)
@@ -307,11 +309,11 @@ struct AddRoutineSheet: View {
                     // Name
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Name")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(OrbitTheme.mono(13, weight: .semibold))
                             .foregroundStyle(.secondary)
                         TextField("e.g. Morning Routine", text: $name)
                             .textFieldStyle(.plain)
-                            .font(.system(size: 15))
+                            .font(OrbitTheme.mono(15))
                             .padding(10)
                             .background(Color.gray.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
                     }
@@ -319,7 +321,7 @@ struct AddRoutineSheet: View {
                     // Type
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Type")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(OrbitTheme.mono(13, weight: .semibold))
                             .foregroundStyle(.secondary)
                         HStack(spacing: 8) {
                             ForEach(RoutineType.allCases, id: \.self) { type in
@@ -329,9 +331,9 @@ struct AddRoutineSheet: View {
                                 } label: {
                                     HStack(spacing: 5) {
                                         Image(systemName: type.icon)
-                                            .font(.system(size: 11))
+                                            .font(OrbitTheme.mono(11))
                                         Text(type.rawValue)
-                                            .font(.system(size: 12, weight: .medium))
+                                            .font(OrbitTheme.mono(12, weight: .medium))
                                     }
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 7)
@@ -355,7 +357,7 @@ struct AddRoutineSheet: View {
                     // Color
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Color")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(OrbitTheme.mono(13, weight: .semibold))
                             .foregroundStyle(.secondary)
                         HStack(spacing: 10) {
                             ForEach(OrbitTheme.habitColors, id: \.self) { colorName in
@@ -381,7 +383,7 @@ struct AddRoutineSheet: View {
                     // Schedule
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Schedule")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(OrbitTheme.mono(13, weight: .semibold))
                             .foregroundStyle(.secondary)
                         HStack(spacing: 6) {
                             let dayLabels = ["S", "M", "T", "W", "T", "F", "S"]
@@ -395,7 +397,7 @@ struct AddRoutineSheet: View {
                                     }
                                 } label: {
                                     Text(dayLabels[weekday - 1])
-                                        .font(.system(size: 12, weight: .semibold))
+                                        .font(OrbitTheme.mono(12, weight: .semibold))
                                         .frame(width: 30, height: 30)
                                         .background(
                                             isOn
@@ -417,13 +419,13 @@ struct AddRoutineSheet: View {
                     // Steps
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Steps")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(OrbitTheme.mono(13, weight: .semibold))
                             .foregroundStyle(.secondary)
 
                         let totalEst = steps.compactMap(\.timeEstimate).reduce(0, +)
                         if totalEst > 0 {
                             Text("Total: ~\(totalEst) min")
-                                .font(.system(size: 12))
+                                .font(OrbitTheme.mono(12))
                                 .foregroundStyle(.tertiary)
                         }
 
@@ -434,10 +436,10 @@ struct AddRoutineSheet: View {
                                     .foregroundStyle(.tertiary)
                                     .frame(width: 20)
                                 Text(step.name)
-                                    .font(.system(size: 13))
+                                    .font(OrbitTheme.mono(13))
                                 if step.habitId != nil {
                                     Image(systemName: "link")
-                                        .font(.system(size: 9))
+                                        .font(OrbitTheme.mono(9))
                                         .foregroundStyle(.tertiary)
                                 }
                                 Spacer()
@@ -450,7 +452,7 @@ struct AddRoutineSheet: View {
                                     steps.remove(at: idx)
                                 } label: {
                                     Image(systemName: "xmark")
-                                        .font(.system(size: 9, weight: .bold))
+                                        .font(OrbitTheme.mono(9, weight: .bold))
                                         .foregroundStyle(.tertiary)
                                 }
                                 .buttonStyle(.plain)
@@ -464,7 +466,7 @@ struct AddRoutineSheet: View {
                         HStack(spacing: 8) {
                             TextField("Add a step...", text: $newStepName)
                                 .textFieldStyle(.plain)
-                                .font(.system(size: 13))
+                                .font(OrbitTheme.mono(13))
                                 .onSubmit { addStep() }
 
                             TextField("min", text: $newStepTime)
@@ -478,7 +480,7 @@ struct AddRoutineSheet: View {
                                 addStep()
                             } label: {
                                 Image(systemName: "plus.circle.fill")
-                                    .font(.system(size: 18))
+                                    .font(OrbitTheme.mono(18))
                                     .foregroundStyle(OrbitTheme.color(for: selectedColor))
                             }
                             .buttonStyle(.plain)
@@ -491,7 +493,7 @@ struct AddRoutineSheet: View {
                         if !store.habits.isEmpty {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("Or link a habit:")
-                                    .font(.system(size: 11))
+                                    .font(OrbitTheme.mono(11))
                                     .foregroundStyle(.tertiary)
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack(spacing: 6) {
@@ -502,9 +504,9 @@ struct AddRoutineSheet: View {
                                             } label: {
                                                 HStack(spacing: 4) {
                                                     Image(systemName: habit.icon)
-                                                        .font(.system(size: 10))
+                                                        .font(OrbitTheme.mono(10))
                                                     Text(habit.name)
-                                                        .font(.system(size: 11))
+                                                        .font(OrbitTheme.mono(11))
                                                 }
                                                 .padding(.horizontal, 8)
                                                 .padding(.vertical, 5)
@@ -549,7 +551,7 @@ struct AddRoutineSheet: View {
                     dismiss()
                 } label: {
                     Text("Create Routine")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(OrbitTheme.mono(13, weight: .semibold))
                         .padding(.horizontal, 20)
                         .padding(.vertical, 8)
                         .background(OrbitTheme.accent, in: Capsule())

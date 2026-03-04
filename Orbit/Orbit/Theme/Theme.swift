@@ -40,6 +40,11 @@ enum OrbitTheme {
         .system(size: size, weight: weight, design: .monospaced)
     }
 
+    // Rounded font helper (SF Rounded)
+    static func rounded(_ size: CGFloat, weight: Font.Weight = .bold) -> Font {
+        .system(size: size, weight: weight, design: .rounded)
+    }
+
     static let habitIcons = [
         "figure.run", "book.fill", "brain.head.profile", "drop.fill",
         "pencil.line", "dumbbell.fill", "heart.fill", "moon.stars.fill",
