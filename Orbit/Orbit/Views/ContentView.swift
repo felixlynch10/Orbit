@@ -3,6 +3,7 @@ import SwiftUI
 enum NavItem: String, Hashable, CaseIterable {
     case today = "Today"
     case routines = "Routines"
+    case trends = "Trends"
     case weekly = "This Week"
     case allHabits = "All Habits"
 
@@ -10,6 +11,7 @@ enum NavItem: String, Hashable, CaseIterable {
         switch self {
         case .today:       return "sun.max.fill"
         case .routines:    return "list.bullet.rectangle"
+        case .trends:      return "chart.line.uptrend.xyaxis"
         case .weekly:      return "calendar"
         case .allHabits:   return "square.grid.2x2.fill"
         }
@@ -31,6 +33,8 @@ struct ContentView: View {
                     DashboardView(showingAddSheet: $showingAddSheet)
                 case .routines:
                     RoutineListView()
+                case .trends:
+                    TrendChartsView()
                 case .weekly:
                     WeeklyGridView()
                 case .allHabits:
