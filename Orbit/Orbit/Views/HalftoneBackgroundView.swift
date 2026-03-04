@@ -1,20 +1,55 @@
 import SwiftUI
+import AppKit
 
-/// Static halftone dot-grid background with mouse trail effect.
-/// Dots near the cursor grow larger and brighter, leaving a fading trail.
-struct HalftoneBackgroundView: View {
-    var opacity: Double = 0.05
-    var cellSize: CGFloat = 8.0
-
+/// Tracks mouse position globally within the window, shared across views.
+class MouseTracker: ObservableObject {
     struct TrailPoint {
         let position: CGPoint
         let time: Double
     }
 
-    @State private var trail: [TrailPoint] = []
-    @State private var isHovering = false
+    @Published var trail: [TrailPoint] = []
+    let trailDuration: Double = 0.8
 
-    private let trailDuration: Double = 0.8
+    private var monitor: Any?
+
+    init() {
+        monitor = NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged, .rightMouseDragged]) { [weak self] event in
+            self?.handleMove(event)
+            return event
+        }
+    }
+
+    deinit {
+        if let monitor { NSEvent.removeMonitor(monitor) }
+    }
+
+    private func handleMove(_ event: NSEvent) {
+        guard let window = event.window else { return }
+        // Convert to window content coordinates (flipped for SwiftUI)
+        let loc = event.locationInWindow
+        let flipped = CGPoint(x: loc.x, y: window.contentView?.frame.height ?? 0 - loc.y)
+
+        let now = Date().timeIntervalSinceReferenceDate
+        let cellThreshold: CGFloat = 4.0
+
+        if trail.isEmpty || hypot(flipped.x - trail.last!.position.x, flipped.y - trail.last!.position.y) > cellThreshold {
+            trail.append(TrailPoint(position: flipped, time: now))
+        }
+        // Trim expired
+        trail = trail.filter { now - $0.time < trailDuration }
+    }
+}
+
+/// Static halftone dot-grid background with mouse trail effect.
+/// Dots near the cursor grow larger and brighter, leaving a fading trail.
+/// Uses NSEvent monitoring so it works even behind ScrollViews.
+struct HalftoneBackgroundView: View {
+    var opacity: Double = 0.05
+    var cellSize: CGFloat = 8.0
+
+    @StateObject private var mouseTracker = MouseTracker()
+
     private let trailRadius: CGFloat = 45
 
     var body: some View {
@@ -25,7 +60,7 @@ struct HalftoneBackgroundView: View {
                 let rows = Int(size.height / cellSize)
                 let offsetX = (size.width - CGFloat(cols) * cellSize) / 2
                 let offsetY = (size.height - CGFloat(rows) * cellSize) / 2
-                let liveTrail = trail.filter { now - $0.time < trailDuration }
+                let liveTrail = mouseTracker.trail.filter { now - $0.time < mouseTracker.trailDuration }
                 let hasTrail = !liveTrail.isEmpty
 
                 for row in 0..<rows {
@@ -41,7 +76,7 @@ struct HalftoneBackgroundView: View {
                                 let age = now - tp.time
                                 let dist = hypot(cx - tp.position.x, cy - tp.position.y)
                                 if dist < trailRadius {
-                                    let s = (1.0 - dist / trailRadius) * (1.0 - CGFloat(age / trailDuration))
+                                    let s = (1.0 - dist / trailRadius) * (1.0 - CGFloat(age / mouseTracker.trailDuration))
                                     influence = max(influence, s)
                                 }
                             }
@@ -59,25 +94,6 @@ struct HalftoneBackgroundView: View {
                             color: OrbitTheme.accent.opacity(alpha)
                         )
                     }
-                }
-            }
-        }
-        .onContinuousHover { phase in
-            switch phase {
-            case .active(let loc):
-                isHovering = true
-                let now = Date().timeIntervalSinceReferenceDate
-                // Only sample when cursor moved enough
-                if trail.isEmpty || hypot(loc.x - trail.last!.position.x, loc.y - trail.last!.position.y) > cellSize * 0.5 {
-                    trail.append(TrailPoint(position: loc, time: now))
-                }
-                // Trim expired points
-                trail = trail.filter { now - $0.time < trailDuration }
-            case .ended:
-                isHovering = false
-                let dur = trailDuration
-                DispatchQueue.main.asyncAfter(deadline: .now() + dur + 0.1) {
-                    if !isHovering { trail.removeAll() }
                 }
             }
         }
