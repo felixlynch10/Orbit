@@ -124,6 +124,7 @@ struct WeeklyGridView: View {
                 }
                 .padding(30)
             }
+            .scrollIndicators(.hidden)
         }
         .background(Color(.windowBackgroundColor))
     }
@@ -218,6 +219,7 @@ struct AllHabitsView: View {
                 }
                 .padding(30)
             }
+            .scrollIndicators(.hidden)
         }
         .background(Color(.windowBackgroundColor))
     }

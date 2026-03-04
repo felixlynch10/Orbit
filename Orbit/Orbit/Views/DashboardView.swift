@@ -37,6 +37,7 @@ struct DashboardView: View {
                 }
                 .padding(30)
             }
+            .scrollIndicators(.hidden)
         }
         .background(Color(.windowBackgroundColor))
     }
@@ -113,18 +114,22 @@ struct DashboardView: View {
     private var statsSection: some View {
         HStack(spacing: 16) {
             // Progress ring card
-            VStack(spacing: 8) {
+            VStack(spacing: 10) {
                 ProgressRingView(
                     progress: store.todayCompletionRate,
-                    lineWidth: 10,
-                    size: 100
+                    lineWidth: 7,
+                    size: 58
                 )
-                Text("Today")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
+
+                VStack(spacing: 1) {
+                    Text("Today")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
             }
-            .frame(maxWidth: .infinity)
-            .padding(OrbitTheme.cardPadding)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.horizontal, OrbitTheme.cardPadding)
+            .padding(.vertical, 24)
             .background {
                 ZStack {
                     RoundedRectangle(cornerRadius: OrbitTheme.cardRadius)
@@ -147,17 +152,17 @@ struct DashboardView: View {
             )
 
             StatCardView(
-                icon: "chart.line.uptrend.xyaxis",
-                title: "Weekly Rate",
-                value: "\(Int(store.weeklyRate * 100))%",
-                unit: "avg",
+                icon: "waveform.path.ecg",
+                title: "Orbit Health",
+                value: "\(store.orbitHealthScore)",
+                unit: "/ 100",
                 color: OrbitTheme.ice
             )
 
             StatCardView(
                 icon: "checkmark.seal.fill",
                 title: "Done Today",
-                value: "\(store.todayCompletedCount)/\(store.habits.count)",
+                value: "\(store.todayCompletedCount)/\(store.scheduledHabits.count)",
                 unit: "habits",
                 color: OrbitTheme.accent
             )
@@ -192,7 +197,7 @@ struct DashboardView: View {
             }
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 280), spacing: 14)], spacing: 14) {
-                ForEach(store.habits) { habit in
+                ForEach(store.scheduledHabits) { habit in
                     HabitCardView(habit: habit)
                 }
             }
@@ -267,8 +272,9 @@ struct StatCardView: View {
                     .foregroundStyle(.tertiary)
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(OrbitTheme.cardPadding)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, OrbitTheme.cardPadding)
+        .padding(.vertical, 24)
         .background {
             ZStack {
                 RoundedRectangle(cornerRadius: OrbitTheme.cardRadius)
