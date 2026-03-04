@@ -24,6 +24,7 @@
 		A100000011 /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000011; };
 		A100000012 /* Routine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000012; };
 		A100000013 /* RoutineViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000013; };
+		A100000014 /* HeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000014; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +46,7 @@
 		B100000011 /* Category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Category.swift; sourceTree = "<group>"; };
 		B100000012 /* Routine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Routine.swift; sourceTree = "<group>"; };
 		B100000013 /* RoutineViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineViews.swift; sourceTree = "<group>"; };
+		B100000014 /* HeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeatmapView.swift; sourceTree = "<group>"; };
 		D100000001 /* Orbit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Orbit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -103,6 +105,7 @@
 				B10000000A /* OrbitalSystemView.swift */,
 				B100000010 /* HalftoneBackgroundView.swift */,
 				B100000013 /* RoutineViews.swift */,
+				B100000014 /* HeatmapView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -209,6 +212,7 @@
 				A100000011 /* Category.swift in Sources */,
 				A100000012 /* Routine.swift in Sources */,
 				A100000013 /* RoutineViews.swift in Sources */,
+				A100000014 /* HeatmapView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

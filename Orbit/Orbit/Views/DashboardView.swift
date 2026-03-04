@@ -33,6 +33,7 @@ struct DashboardView: View {
                 VStack(alignment: .leading, spacing: 28) {
                     headerSection
                     statsSection
+                    heatmapSection
                     habitsSection
                 }
                 .padding(30)
@@ -167,6 +168,12 @@ struct DashboardView: View {
                 color: OrbitTheme.accent
             )
         }
+    }
+
+    // MARK: - Heatmap
+
+    private var heatmapSection: some View {
+        HeatmapView(habit: nil)
     }
 
     // MARK: - Habits
