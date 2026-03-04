@@ -145,6 +145,11 @@ struct HabitCardView: View {
         }
         .padding(14)
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: OrbitTheme.cardRadius))
+        .onHover { hovering in
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                store.orbitalFocus = hovering ? .habit(habit.id) : .solarSystem
+            }
+        }
         .popover(isPresented: $showDetail, arrowEdge: .bottom) {
             HabitDetailPopover(habit: habit)
                 .environmentObject(store)

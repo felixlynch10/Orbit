@@ -20,6 +20,11 @@ struct SidebarView: View {
                     Section {
                         ForEach(catHabits) { habit in
                             sidebarHabitRow(habit)
+                                .onHover { hovering in
+                                    withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                                        store.orbitalFocus = hovering ? .habit(habit.id) : .solarSystem
+                                    }
+                                }
                         }
                     } header: {
                         HStack(spacing: 5) {
@@ -27,6 +32,11 @@ struct SidebarView: View {
                                 .font(.system(size: 10))
                                 .foregroundStyle(OrbitTheme.color(for: category.colorName))
                             Text(category.name)
+                        }
+                        .onHover { hovering in
+                            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                                store.orbitalFocus = hovering ? .category(category.id) : .solarSystem
+                            }
                         }
                     }
                 }

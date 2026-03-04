@@ -110,6 +110,9 @@ struct TrendChartsView: View {
         let isSelected = selectedHabitId == id
         return Button {
             withAnimation { selectedHabitId = id }
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                store.orbitalFocus = .trends(habitId: id)
+            }
         } label: {
             Text(label)
                 .font(.system(size: 11, weight: .medium))
