@@ -16,7 +16,7 @@ struct AddHabitSheet: View {
             // Header
             HStack {
                 Text("New Orbit")
-                    .font(.system(size: 18, weight: .bold))
+                    .font(OrbitTheme.mono(18))
                 Spacer()
                 Button {
                     dismiss()
@@ -121,7 +121,7 @@ struct AddHabitSheet: View {
                                     targetDays = day
                                 } label: {
                                     Text("\(day)")
-                                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                                        .font(OrbitTheme.mono(13, weight: .medium))
                                         .frame(width: 34, height: 34)
                                         .background(
                                             day == targetDays

@@ -35,6 +35,11 @@ enum OrbitTheme {
 
     static let habitColors = ["green", "blue", "purple", "orange", "yellow", "pink"]
 
+    // Monospaced font helper
+    static func mono(_ size: CGFloat, weight: Font.Weight = .bold) -> Font {
+        .system(size: size, weight: weight, design: .monospaced)
+    }
+
     static let habitIcons = [
         "figure.run", "book.fill", "brain.head.profile", "drop.fill",
         "pencil.line", "dumbbell.fill", "heart.fill", "moon.stars.fill",

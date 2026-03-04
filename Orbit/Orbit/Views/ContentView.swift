@@ -4,14 +4,12 @@ enum NavItem: String, Hashable, CaseIterable {
     case today = "Today"
     case weekly = "This Week"
     case allHabits = "All Habits"
-    case modelViewer = "Planet Lab"
 
     var icon: String {
         switch self {
         case .today:       return "sun.max.fill"
         case .weekly:      return "calendar"
         case .allHabits:   return "square.grid.2x2.fill"
-        case .modelViewer: return "globe.americas.fill"
         }
     }
 }
@@ -33,8 +31,6 @@ struct ContentView: View {
                     WeeklyGridView()
                 case .allHabits:
                     AllHabitsView(showingAddSheet: $showingAddSheet)
-                case .modelViewer:
-                    ModelViewerPage()
                 case .none:
                     DashboardView(showingAddSheet: $showingAddSheet)
                 }
@@ -44,33 +40,6 @@ struct ContentView: View {
             AddHabitSheet()
                 .environmentObject(store)
         }
-    }
-}
-
-// MARK: - Model Viewer Page
-
-struct ModelViewerPage: View {
-    var body: some View {
-        ZStack {
-            StarsBackgroundView().opacity(0.4).ignoresSafeArea()
-
-            VStack(spacing: 20) {
-                Text("Planet Lab")
-                    .font(.system(size: 28, weight: .bold))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                Text("Drop a 3D model (.obj, .usdz, .scn, .dae) to render it in pixel art style. Drag to rotate, pinch to zoom.")
-                    .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                HalftoneModelView(gridResolution: 64, dotColor: OrbitTheme.accent)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: OrbitTheme.cardRadius))
-            }
-            .padding(30)
-        }
-        .background(Color(.windowBackgroundColor))
     }
 }
 
@@ -104,12 +73,12 @@ struct WeeklyGridView: View {
 
     var body: some View {
         ZStack {
-            StarsBackgroundView().opacity(0.3).ignoresSafeArea()
+            HalftoneBackgroundView(opacity: 0.04).ignoresSafeArea()
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     Text("Weekly Overview")
-                        .font(.system(size: 28, weight: .bold))
+                        .font(OrbitTheme.mono(26))
                         .padding(.bottom, 4)
 
                     ForEach(store.habits) { habit in
@@ -122,7 +91,7 @@ struct WeeklyGridView: View {
                                     .font(.system(size: 15, weight: .semibold))
                                 Spacer()
                                 Text("\(Int(habit.completionRate(days: 7) * 100))%")
-                                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                                    .font(OrbitTheme.mono(13))
                                     .foregroundStyle(OrbitTheme.color(for: habit.colorName))
                             }
 
@@ -139,17 +108,11 @@ struct WeeklyGridView: View {
                                 ForEach(Array(datesForGrid().enumerated()), id: \.offset) { _, week in
                                     HStack(spacing: OrbitTheme.gridSpacing) {
                                         ForEach(week, id: \.self) { date in
-                                            let completed = habit.isCompleted(on: date)
-                                            let isFuture = date > calendar.startOfDay(for: Date())
-                                            RoundedRectangle(cornerRadius: 3)
-                                                .fill(
-                                                    isFuture
-                                                        ? Color.gray.opacity(0.06)
-                                                        : completed
-                                                            ? OrbitTheme.color(for: habit.colorName)
-                                                            : Color.gray.opacity(0.12)
-                                                )
-                                                .frame(width: OrbitTheme.gridCellSize, height: OrbitTheme.gridCellSize)
+                                            HalftoneGridCell(
+                                                habit: habit,
+                                                date: date,
+                                                isFuture: date > calendar.startOfDay(for: Date())
+                                            )
                                         }
                                     }
                                 }
@@ -166,6 +129,61 @@ struct WeeklyGridView: View {
     }
 }
 
+/// Single halftone micro-cell for the weekly grid.
+/// Each cell is one "halftone dot" — colored background with a centered rounded-square dot.
+struct HalftoneGridCell: View {
+    let habit: Habit
+    let date: Date
+    let isFuture: Bool
+
+    private var completed: Bool { habit.isCompleted(on: date) }
+
+    var body: some View {
+        Canvas { context, size in
+            let cellSize = min(size.width, size.height)
+
+            // Background square
+            let bgColor: Color
+            let darkness: CGFloat
+
+            if isFuture {
+                bgColor = Color.gray.opacity(0.04)
+                darkness = 0.1
+            } else if completed {
+                bgColor = OrbitTheme.color(for: habit.colorName).opacity(0.2)
+                darkness = 0.8
+            } else {
+                bgColor = OrbitTheme.void.opacity(0.3)
+                darkness = 0.2
+            }
+
+            let bgRect = CGRect(origin: .zero, size: size)
+            context.fill(
+                RoundedRectangle(cornerRadius: 3).path(in: bgRect),
+                with: .color(bgColor)
+            )
+
+            // Centered halftone dot
+            let dotSize = HalftoneRenderer.dotSize(darkness: darkness, cellSize: cellSize)
+            let cornerRadius = dotSize * HalftoneRenderer.cornerRadiusFraction
+            let dotRect = CGRect(
+                x: (size.width - dotSize) / 2,
+                y: (size.height - dotSize) / 2,
+                width: dotSize,
+                height: dotSize
+            )
+            let dotColor: Color = completed
+                ? HalftoneRenderer.dotColor
+                : HalftoneRenderer.dotColor.opacity(0.4)
+            context.fill(
+                RoundedRectangle(cornerRadius: cornerRadius).path(in: dotRect),
+                with: .color(dotColor)
+            )
+        }
+        .frame(width: OrbitTheme.gridCellSize, height: OrbitTheme.gridCellSize)
+    }
+}
+
 // MARK: - All Habits View
 
 struct AllHabitsView: View {
@@ -174,13 +192,13 @@ struct AllHabitsView: View {
 
     var body: some View {
         ZStack {
-            StarsBackgroundView().opacity(0.3).ignoresSafeArea()
+            HalftoneBackgroundView(opacity: 0.04).ignoresSafeArea()
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     HStack {
                         Text("All Habits")
-                            .font(.system(size: 28, weight: .bold))
+                            .font(OrbitTheme.mono(26))
                         Spacer()
                         Button {
                             showingAddSheet = true
@@ -258,7 +276,7 @@ struct StatPill: View {
     var body: some View {
         VStack(spacing: 2) {
             Text(value)
-                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .font(OrbitTheme.mono(14))
             Text(label)
                 .font(.system(size: 10))
                 .foregroundStyle(.secondary)

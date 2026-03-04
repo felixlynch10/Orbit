@@ -72,20 +72,46 @@ struct HabitCardView: View {
 
             Spacer()
 
-            // Mini 7-day dots
+            // Mini 7-day halftone dots
             HStack(spacing: 3) {
                 ForEach(lastSevenDays, id: \.self) { date in
                     let done = habit.isCompleted(on: date)
                     let isSelected = calendar.isDate(date, inSameDayAs: store.selectedDate)
-                    RoundedRectangle(cornerRadius: 2.5)
-                        .fill(done ? color : Color.gray.opacity(0.15))
-                        .frame(width: 10, height: 10)
-                        .overlay(
-                            isSelected
-                                ? RoundedRectangle(cornerRadius: 2.5)
-                                    .stroke(color.opacity(0.5), lineWidth: 1)
-                                : nil
+                    Canvas { context, size in
+                        let cellSize = min(size.width, size.height)
+                        let darkness: CGFloat = done ? 0.8 : 0.15
+                        let bgColor: Color = done ? color.opacity(0.2) : Color.gray.opacity(0.06)
+
+                        // Background
+                        context.fill(
+                            RoundedRectangle(cornerRadius: 2.5).path(in: CGRect(origin: .zero, size: size)),
+                            with: .color(bgColor)
                         )
+
+                        // Centered dot
+                        let dotSize = HalftoneRenderer.dotSize(darkness: darkness, cellSize: cellSize)
+                        let cr = dotSize * HalftoneRenderer.cornerRadiusFraction
+                        let dotRect = CGRect(
+                            x: (size.width - dotSize) / 2,
+                            y: (size.height - dotSize) / 2,
+                            width: dotSize,
+                            height: dotSize
+                        )
+                        context.fill(
+                            RoundedRectangle(cornerRadius: cr).path(in: dotRect),
+                            with: .color(done ? HalftoneRenderer.dotColor : HalftoneRenderer.dotColor.opacity(0.3))
+                        )
+
+                        // Selection border
+                        if isSelected {
+                            context.stroke(
+                                RoundedRectangle(cornerRadius: 2.5).path(in: CGRect(origin: .zero, size: size).insetBy(dx: 0.5, dy: 0.5)),
+                                with: .color(color.opacity(0.5)),
+                                lineWidth: 1
+                            )
+                        }
+                    }
+                    .frame(width: 10, height: 10)
                 }
             }
 

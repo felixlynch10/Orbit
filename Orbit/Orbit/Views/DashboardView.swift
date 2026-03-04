@@ -26,8 +26,7 @@ struct DashboardView: View {
 
     var body: some View {
         ZStack {
-            StarsBackgroundView()
-                .opacity(0.5)
+            HalftoneBackgroundView(opacity: 0.05)
                 .ignoresSafeArea()
 
             ScrollView {
@@ -45,68 +44,67 @@ struct DashboardView: View {
     // MARK: - Header
 
     private var headerSection: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(greeting)
-                    .font(.system(size: 28, weight: .bold))
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(greeting)
+                        .font(.system(size: 28, weight: .bold))
 
-                HStack(spacing: 12) {
-                    Text(dateString)
-                        .font(.system(size: 15))
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 12) {
+                        Text(dateString)
+                            .font(.system(size: 15))
+                            .foregroundStyle(.secondary)
 
-                    if !isToday {
-                        Button("Back to Today") {
-                            withAnimation { store.selectedDate = Date() }
+                        if !isToday {
+                            Button("Back to Today") {
+                                withAnimation { store.selectedDate = Date() }
+                            }
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(OrbitTheme.accent)
+                            .buttonStyle(.plain)
                         }
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(OrbitTheme.accent)
+                    }
+
+                    // Date navigation
+                    HStack(spacing: 6) {
+                        Button {
+                            withAnimation {
+                                store.selectedDate = Calendar.current.date(byAdding: .day, value: -1, to: store.selectedDate)!
+                            }
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 11, weight: .semibold))
+                                .frame(width: 24, height: 24)
+                                .background(Color.gray.opacity(0.1), in: Circle())
+                        }
+                        .buttonStyle(.plain)
+
+                        Button {
+                            withAnimation {
+                                store.selectedDate = Calendar.current.date(byAdding: .day, value: 1, to: store.selectedDate)!
+                            }
+                        } label: {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 11, weight: .semibold))
+                                .frame(width: 24, height: 24)
+                                .background(Color.gray.opacity(0.1), in: Circle())
+                        }
                         .buttonStyle(.plain)
                     }
+                    .padding(.top, 4)
                 }
 
-                // Date navigation
-                HStack(spacing: 6) {
-                    Button {
-                        withAnimation {
-                            store.selectedDate = Calendar.current.date(byAdding: .day, value: -1, to: store.selectedDate)!
-                        }
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 11, weight: .semibold))
-                            .frame(width: 24, height: 24)
-                            .background(Color.gray.opacity(0.1), in: Circle())
-                    }
-                    .buttonStyle(.plain)
-
-                    Button {
-                        withAnimation {
-                            store.selectedDate = Calendar.current.date(byAdding: .day, value: 1, to: store.selectedDate)!
-                        }
-                    } label: {
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .semibold))
-                            .frame(width: 24, height: 24)
-                            .background(Color.gray.opacity(0.1), in: Circle())
-                    }
-                    .buttonStyle(.plain)
-                }
-                .padding(.top, 4)
+                Spacer()
             }
 
-            Spacer()
-
-            // Solar system decoration — drop a 3D model here to replace with pixel art
-            ZStack {
-                SolarSystemView()
-                    .frame(width: 240, height: 240)
-
-                // Small drop zone overlay for 3D model
-                HalftoneModelView(compact: true, gridResolution: 36, dotColor: OrbitTheme.accent)
-                    .frame(width: 240, height: 240)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-            }
-            .offset(x: 10, y: -10)
+            // Orbital system hero
+            OrbitalSystemView(
+                habits: store.habits,
+                selectedDate: store.selectedDate,
+                completionRate: store.todayCompletionRate
+            )
+            .frame(height: 280)
+            .clipShape(RoundedRectangle(cornerRadius: OrbitTheme.cardRadius))
         }
     }
 
@@ -127,7 +125,18 @@ struct DashboardView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(OrbitTheme.cardPadding)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: OrbitTheme.cardRadius))
+            .background {
+                ZStack {
+                    RoundedRectangle(cornerRadius: OrbitTheme.cardRadius)
+                        .fill(.ultraThinMaterial)
+                    // Halftone accent banner at top
+                    VStack {
+                        HalftoneBannerView(color: OrbitTheme.accent)
+                        Spacer()
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: OrbitTheme.cardRadius))
+                }
+            }
 
             StatCardView(
                 icon: "flame.fill",
@@ -161,7 +170,7 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Text("Habits")
-                    .font(.system(size: 20, weight: .bold))
+                    .font(OrbitTheme.mono(20))
 
                 Spacer()
 
@@ -191,6 +200,45 @@ struct DashboardView: View {
     }
 }
 
+// MARK: - Halftone Accent Banner
+
+/// A thin 6pt halftone dot banner for stat cards.
+struct HalftoneBannerView: View {
+    let color: Color
+
+    var body: some View {
+        Canvas { context, size in
+            // Banner background
+            let rect = CGRect(origin: .zero, size: size)
+            context.fill(
+                Rectangle().path(in: rect),
+                with: .color(color.opacity(0.25))
+            )
+
+            // Halftone dots — denser in center, fading toward edges
+            let cellSize: CGFloat = 5.0
+            let cols = Int(size.width / cellSize)
+            let rows = Int(size.height / cellSize)
+
+            for row in 0..<rows {
+                for col in 0..<cols {
+                    let x = CGFloat(col) * cellSize + cellSize / 2
+                    let centerDist = abs(x - size.width / 2) / (size.width / 2)
+                    let darkness = 0.6 * (1.0 - centerDist * 0.7)
+                    HalftoneRenderer.drawDot(
+                        in: &context,
+                        cellOrigin: CGPoint(x: CGFloat(col) * cellSize, y: CGFloat(row) * cellSize),
+                        cellSize: cellSize,
+                        darkness: darkness,
+                        color: HalftoneRenderer.dotColor.opacity(0.6)
+                    )
+                }
+            }
+        }
+        .frame(height: 6)
+    }
+}
+
 // MARK: - Stat Card
 
 struct StatCardView: View {
@@ -207,7 +255,7 @@ struct StatCardView: View {
                 .foregroundStyle(color)
 
             Text(value)
-                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .font(OrbitTheme.mono(24))
                 .contentTransition(.numericText())
 
             VStack(spacing: 1) {
@@ -221,6 +269,17 @@ struct StatCardView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(OrbitTheme.cardPadding)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: OrbitTheme.cardRadius))
+        .background {
+            ZStack {
+                RoundedRectangle(cornerRadius: OrbitTheme.cardRadius)
+                    .fill(.ultraThinMaterial)
+                // Halftone accent banner at top
+                VStack {
+                    HalftoneBannerView(color: color)
+                    Spacer()
+                }
+                .clipShape(RoundedRectangle(cornerRadius: OrbitTheme.cardRadius))
+            }
+        }
     }
 }
