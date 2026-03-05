@@ -1,11 +1,9 @@
 import SwiftUI
 
 /// Small halftone-styled info card shown in the bottom-left of the orbital view
-/// when hovering over a planet, moon, or the sun.
+/// based on keyboard-driven selection state.
 struct OrbitalInfoPanel: View {
     @EnvironmentObject var store: HabitStore
-
-    private var target: OrbitalHitTarget { store.hoveredTarget }
 
     var body: some View {
         VStack {
@@ -21,19 +19,17 @@ struct OrbitalInfoPanel: View {
 
     @ViewBuilder
     private var panelContent: some View {
-        switch target {
-        case .planet(let catId):
-            if let cat = store.categories.first(where: { $0.id == catId }) {
+        let cats = store.sortedCategories
+        if let catIdx = store.selectedCategoryIndex, catIdx < cats.count {
+            let cat = cats[catIdx]
+            let catHabits = store.habitsForCategory(cat.id)
+            if let moonIdx = store.selectedMoonIndex, moonIdx < catHabits.count {
+                moonPanel(habit: catHabits[moonIdx])
+            } else {
                 planetPanel(cat: cat)
             }
-        case .moon(let habitId, _):
-            if let habit = store.habits.first(where: { $0.id == habitId }) {
-                moonPanel(habit: habit)
-            }
-        case .sun:
+        } else {
             sunPanel
-        case .none:
-            EmptyView()
         }
     }
 

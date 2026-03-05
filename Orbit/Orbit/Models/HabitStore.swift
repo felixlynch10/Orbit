@@ -7,8 +7,9 @@ class HabitStore: ObservableObject {
     @Published var routines: [Routine] = []
     @Published var selectedDate: Date = Date()
     @Published var orbitalFocus: OrbitalFocus = .solarSystem
-    @Published var hoveredTarget: OrbitalHitTarget = .none
     @Published var selectedPlanetId: UUID? = nil
+    @Published var selectedCategoryIndex: Int? = nil
+    @Published var selectedMoonIndex: Int? = nil
     @Published var orbitalFrameSnapshot: OrbitalFrameSnapshot = .init()
 
     private let dir: URL = {
@@ -93,6 +94,14 @@ class HabitStore: ObservableObject {
 
     var uncategorizedHabits: [Habit] {
         habits.filter { $0.categoryId == nil }
+    }
+
+    var sortedCategories: [HabitCategory] {
+        categories.sorted { $0.sortOrder < $1.sortOrder }
+    }
+
+    func habitsForCategory(_ catId: UUID) -> [Habit] {
+        habits.filter { $0.categoryId == catId }
     }
 
     // MARK: - Routine Persistence

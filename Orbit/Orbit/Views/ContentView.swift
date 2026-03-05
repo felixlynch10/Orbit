@@ -22,6 +22,106 @@ struct ContentView: View {
     @EnvironmentObject var store: HabitStore
     @State private var selection: NavItem? = .today
     @State private var showingAddSheet = false
+    @FocusState private var isOrbitalFocused: Bool
+
+    private enum KeyDirection { case up, down, left, right, space }
+
+    private func handleKey(_ dir: KeyDirection) -> KeyPress.Result {
+        let cats = store.sortedCategories
+        guard !cats.isEmpty else { return .ignored }
+
+        let anim = Animation.spring(response: 0.5, dampingFraction: 0.8)
+
+        switch dir {
+        case .down:
+            if store.selectedCategoryIndex == nil {
+                // Solar system → select first planet
+                withAnimation(anim) {
+                    store.selectedCategoryIndex = 0
+                    store.selectedMoonIndex = nil
+                    let cat = cats[0]
+                    store.orbitalFocus = .category(cat.id)
+                }
+            } else if store.selectedMoonIndex == nil {
+                // Planet level → select first moon
+                let cat = cats[store.selectedCategoryIndex!]
+                let moons = store.habitsForCategory(cat.id)
+                guard !moons.isEmpty else { return .handled }
+                withAnimation(anim) {
+                    store.selectedMoonIndex = 0
+                    store.selectedPlanetId = cat.id
+                    store.orbitalFocus = .habit(moons[0].id)
+                }
+            }
+            // Moon level → no-op
+
+        case .up:
+            if store.selectedMoonIndex != nil {
+                // Moon → back to planet
+                let catIdx = store.selectedCategoryIndex!
+                let cat = cats[catIdx]
+                withAnimation(anim) {
+                    store.selectedMoonIndex = nil
+                    store.orbitalFocus = .category(cat.id)
+                }
+            } else if store.selectedCategoryIndex != nil {
+                // Planet → back to solar system
+                withAnimation(anim) {
+                    store.selectedCategoryIndex = nil
+                    store.selectedPlanetId = nil
+                    store.orbitalFocus = .solarSystem
+                }
+            }
+            // Solar system → no-op
+
+        case .left:
+            if let moonIdx = store.selectedMoonIndex {
+                let cat = cats[store.selectedCategoryIndex!]
+                let moons = store.habitsForCategory(cat.id)
+                guard !moons.isEmpty else { return .handled }
+                let newIdx = (moonIdx - 1 + moons.count) % moons.count
+                withAnimation(anim) {
+                    store.selectedMoonIndex = newIdx
+                    store.orbitalFocus = .habit(moons[newIdx].id)
+                }
+            } else if let catIdx = store.selectedCategoryIndex {
+                let newIdx = (catIdx - 1 + cats.count) % cats.count
+                withAnimation(anim) {
+                    store.selectedCategoryIndex = newIdx
+                    store.orbitalFocus = .category(cats[newIdx].id)
+                }
+            }
+
+        case .right:
+            if let moonIdx = store.selectedMoonIndex {
+                let cat = cats[store.selectedCategoryIndex!]
+                let moons = store.habitsForCategory(cat.id)
+                guard !moons.isEmpty else { return .handled }
+                let newIdx = (moonIdx + 1) % moons.count
+                withAnimation(anim) {
+                    store.selectedMoonIndex = newIdx
+                    store.orbitalFocus = .habit(moons[newIdx].id)
+                }
+            } else if let catIdx = store.selectedCategoryIndex {
+                let newIdx = (catIdx + 1) % cats.count
+                withAnimation(anim) {
+                    store.selectedCategoryIndex = newIdx
+                    store.orbitalFocus = .category(cats[newIdx].id)
+                }
+            }
+
+        case .space:
+            // Only at moon level — toggle habit completion
+            guard let catIdx = store.selectedCategoryIndex,
+                  let moonIdx = store.selectedMoonIndex else { return .ignored }
+            let cat = cats[catIdx]
+            let moons = store.habitsForCategory(cat.id)
+            guard moonIdx < moons.count else { return .handled }
+            store.toggleHabit(id: moons[moonIdx].id, on: store.selectedDate)
+        }
+
+        return .handled
+    }
 
     var body: some View {
         NavigationSplitView {
@@ -44,7 +144,6 @@ struct ContentView: View {
 
                         OrbitalInfoPanel()
 
-                        OrbitalInteractionLayer()
                     }
                     .frame(height: max(240, geo.size.height * 0.42))
                     .clipShape(RoundedRectangle(cornerRadius: OrbitTheme.cardRadius))
@@ -75,8 +174,19 @@ struct ContentView: View {
                     }
                 }
             }
+            .focusable()
+            .focused($isOrbitalFocused)
+            .focusEffectDisabled()
+            .onAppear { isOrbitalFocused = true }
+            .onKeyPress(.downArrow) { handleKey(.down) }
+            .onKeyPress(.upArrow) { handleKey(.up) }
+            .onKeyPress(.leftArrow) { handleKey(.left) }
+            .onKeyPress(.rightArrow) { handleKey(.right) }
+            .onKeyPress(.space) { handleKey(.space) }
             .onChange(of: selection) { _, newValue in
                 store.selectedPlanetId = nil
+                store.selectedCategoryIndex = nil
+                store.selectedMoonIndex = nil
                 withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                     switch newValue {
                     case .today, .allHabits, .none:
