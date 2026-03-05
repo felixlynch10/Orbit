@@ -12,6 +12,7 @@
 		A100000003 /* Habit.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000003; };
 		A100000004 /* HabitStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000004; };
 		A100000020 /* OrbitalFocus.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000020; };
+		A100000021 /* OrbitalHitTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000021; };
 		A100000005 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000005; };
 		A100000006 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000006; };
 		A100000007 /* HabitCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000007; };
@@ -28,6 +29,10 @@
 		A100000014 /* HeatmapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000014; };
 		A100000015 /* FocusModeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000015; };
 		A100000016 /* TrendChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000016; };
+		A100000022 /* OrbitalIconOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000022; };
+		A100000023 /* OrbitalInteractionLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000023; };
+		A100000024 /* CategoryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000024; };
+		A100000025 /* OrbitalInfoPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100000025; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +41,7 @@
 		B100000003 /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
 		B100000004 /* HabitStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitStore.swift; sourceTree = "<group>"; };
 		B100000020 /* OrbitalFocus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitalFocus.swift; sourceTree = "<group>"; };
+		B100000021 /* OrbitalHitTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitalHitTarget.swift; sourceTree = "<group>"; };
 		B100000005 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		B100000006 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		B100000007 /* HabitCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitCardView.swift; sourceTree = "<group>"; };
@@ -53,6 +59,10 @@
 		B100000014 /* HeatmapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeatmapView.swift; sourceTree = "<group>"; };
 		B100000015 /* FocusModeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusModeView.swift; sourceTree = "<group>"; };
 		B100000016 /* TrendChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendChartView.swift; sourceTree = "<group>"; };
+		B100000022 /* OrbitalIconOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitalIconOverlay.swift; sourceTree = "<group>"; };
+		B100000023 /* OrbitalInteractionLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitalInteractionLayer.swift; sourceTree = "<group>"; };
+		B100000024 /* CategoryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryDetailView.swift; sourceTree = "<group>"; };
+		B100000025 /* OrbitalInfoPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrbitalInfoPanel.swift; sourceTree = "<group>"; };
 		D100000001 /* Orbit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Orbit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -94,6 +104,7 @@
 				B100000003 /* Habit.swift */,
 				B100000004 /* HabitStore.swift */,
 				B100000020 /* OrbitalFocus.swift */,
+				B100000021 /* OrbitalHitTarget.swift */,
 				B100000011 /* Category.swift */,
 				B100000012 /* Routine.swift */,
 			);
@@ -115,6 +126,10 @@
 				B100000014 /* HeatmapView.swift */,
 				B100000015 /* FocusModeView.swift */,
 				B100000016 /* TrendChartView.swift */,
+				B100000022 /* OrbitalIconOverlay.swift */,
+				B100000023 /* OrbitalInteractionLayer.swift */,
+				B100000024 /* CategoryDetailView.swift */,
+				B100000025 /* OrbitalInfoPanel.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -210,6 +225,7 @@
 				A100000003 /* Habit.swift in Sources */,
 				A100000004 /* HabitStore.swift in Sources */,
 				A100000020 /* OrbitalFocus.swift in Sources */,
+				A100000021 /* OrbitalHitTarget.swift in Sources */,
 				A100000005 /* SidebarView.swift in Sources */,
 				A100000006 /* DashboardView.swift in Sources */,
 				A100000007 /* HabitCardView.swift in Sources */,
@@ -225,6 +241,10 @@
 				A100000014 /* HeatmapView.swift in Sources */,
 				A100000015 /* FocusModeView.swift in Sources */,
 				A100000016 /* TrendChartView.swift in Sources */,
+				A100000022 /* OrbitalIconOverlay.swift in Sources */,
+				A100000023 /* OrbitalInteractionLayer.swift in Sources */,
+				A100000024 /* CategoryDetailView.swift in Sources */,
+				A100000025 /* OrbitalInfoPanel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

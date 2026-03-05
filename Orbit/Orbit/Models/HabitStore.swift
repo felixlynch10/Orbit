@@ -7,6 +7,9 @@ class HabitStore: ObservableObject {
     @Published var routines: [Routine] = []
     @Published var selectedDate: Date = Date()
     @Published var orbitalFocus: OrbitalFocus = .solarSystem
+    @Published var hoveredTarget: OrbitalHitTarget = .none
+    @Published var selectedPlanetId: UUID? = nil
+    @Published var orbitalFrameSnapshot: OrbitalFrameSnapshot = .init()
 
     private let dir: URL = {
         let d = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!

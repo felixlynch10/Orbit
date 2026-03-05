@@ -3,6 +3,7 @@ import SwiftUI
 struct HabitCardView: View {
     @EnvironmentObject var store: HabitStore
     let habit: Habit
+    var returnFocus: OrbitalFocus = .solarSystem
 
     private let calendar = Calendar.current
     @State private var showDetail = false
@@ -150,7 +151,7 @@ struct HabitCardView: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: OrbitTheme.cardRadius))
         .onHover { hovering in
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                store.orbitalFocus = hovering ? .habit(habit.id) : .solarSystem
+                store.orbitalFocus = hovering ? .habit(habit.id) : returnFocus
             }
         }
         .popover(isPresented: $showDetail, arrowEdge: .bottom) {

@@ -27,24 +27,40 @@ struct ContentView: View {
         NavigationSplitView {
             SidebarView(selection: $selection, showingAddSheet: $showingAddSheet)
         } detail: {
-            VStack(spacing: 0) {
-                OrbitalSystemView(
-                    habits: store.habits,
-                    categories: store.categories,
-                    routines: store.routines,
-                    selectedDate: store.selectedDate,
-                    completionRate: store.todayCompletionRate,
-                    focus: store.orbitalFocus
-                )
-                .frame(height: 200)
-                .clipShape(RoundedRectangle(cornerRadius: OrbitTheme.cardRadius))
-                .padding(.horizontal, 30)
-                .padding(.top, 16)
+            GeometryReader { geo in
+                VStack(spacing: 0) {
+                    ZStack {
+                        OrbitalSystemView(
+                            habits: store.habits,
+                            categories: store.categories,
+                            routines: store.routines,
+                            selectedDate: store.selectedDate,
+                            completionRate: store.todayCompletionRate,
+                            focus: store.orbitalFocus,
+                            frameSnapshot: $store.orbitalFrameSnapshot
+                        )
 
-                Group {
+                        OrbitalIconOverlay()
+
+                        OrbitalInfoPanel()
+
+                        OrbitalInteractionLayer()
+                    }
+                    .frame(height: max(240, geo.size.height * 0.42))
+                    .clipShape(RoundedRectangle(cornerRadius: OrbitTheme.cardRadius))
+                    .padding(.horizontal, 30)
+                    .padding(.top, 16)
+
+                    Group {
                     switch selection {
                     case .today:
-                        DashboardView(showingAddSheet: $showingAddSheet)
+                        if let catId = store.selectedPlanetId {
+                            CategoryDetailView(categoryId: catId)
+                                .transition(.move(edge: .trailing).combined(with: .opacity))
+                        } else {
+                            DashboardView(showingAddSheet: $showingAddSheet)
+                                .transition(.move(edge: .leading).combined(with: .opacity))
+                        }
                     case .routines:
                         RoutineListView()
                     case .trends:
@@ -56,9 +72,11 @@ struct ContentView: View {
                     case .none:
                         DashboardView(showingAddSheet: $showingAddSheet)
                     }
+                    }
                 }
             }
             .onChange(of: selection) { _, newValue in
+                store.selectedPlanetId = nil
                 withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                     switch newValue {
                     case .today, .allHabits, .none:

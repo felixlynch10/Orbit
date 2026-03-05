@@ -10,6 +10,7 @@ struct OrbitalSystemView: View {
     let selectedDate: Date
     let completionRate: Double
     let focus: OrbitalFocus
+    @Binding var frameSnapshot: OrbitalFrameSnapshot
 
     // Grid constants
     private let cellSize: CGFloat = 6.5
@@ -20,6 +21,8 @@ struct OrbitalSystemView: View {
     @State private var camY: CGFloat = 0
     @State private var camZoom: CGFloat = 1.0
     @State private var lastFrameTime: Double = 0
+
+    private let sunId = UUID()
 
     // Exponential decay half-life in seconds (lower = snappier)
     private let smoothingHalfLife: Double = 0.12
@@ -44,7 +47,7 @@ struct OrbitalSystemView: View {
         centerX: CGFloat, centerY: CGFloat, viewRadius: CGFloat
     ) -> (x: CGFloat, y: CGFloat, orbitRadius: CGFloat) {
         let orbitFraction = CGFloat(catIndex + 1) / CGFloat(catCount + 1)
-        let orbitRadius = viewRadius * (0.30 + orbitFraction * 0.55)
+        let orbitRadius = viewRadius * (0.40 + orbitFraction * 0.75)
         let speed = 0.3 / sqrt(Double(orbitFraction))
         let baseAngle = Double(catIndex) * (2.0 * .pi / Double(max(catCount, 1)))
         let angle = baseAngle + time * speed
@@ -95,6 +98,15 @@ struct OrbitalSystemView: View {
                 newTargetZoom = 2.5
             }
 
+        case .planetDetail(let catId):
+            if let idx = sortedCategories.firstIndex(where: { $0.id == catId }) {
+                let pos = planetWorldPos(catIndex: idx, catCount: catCount, time: time,
+                                         centerX: centerX, centerY: centerY, viewRadius: viewRadius)
+                newTargetX = pos.x
+                newTargetY = pos.y
+                newTargetZoom = 2.5
+            }
+
         case .habit(let habitId):
             if let habit = habits.first(where: { $0.id == habitId }),
                let catId = habit.categoryId,
@@ -103,7 +115,7 @@ struct OrbitalSystemView: View {
                 let catPos = planetWorldPos(catIndex: catIdx, catCount: catCount, time: time,
                                             centerX: centerX, centerY: centerY, viewRadius: viewRadius)
                 let rate = catHabits.isEmpty ? 0.0 : CGFloat(catHabits.filter { $0.isCompleted(on: selectedDate) }.count) / CGFloat(catHabits.count)
-                let planetRadius = (4 + rate * 4) * cellSize
+                let planetRadius: CGFloat = 3 * cellSize
                 if let mi = catHabits.firstIndex(where: { $0.id == habitId }) {
                     let mPos = moonWorldPos(moonIndex: mi, moonCount: catHabits.count, time: time,
                                             planetX: catPos.x, planetY: catPos.y, planetRadius: planetRadius)
@@ -185,7 +197,7 @@ struct OrbitalSystemView: View {
             let pos = planetWorldPos(catIndex: i, catCount: catCount, time: time,
                                      centerX: centerX, centerY: centerY, viewRadius: viewRadius)
             let rate = catHabits.isEmpty ? 0.0 : CGFloat(catHabits.filter { $0.isCompleted(on: selectedDate) }.count) / CGFloat(catHabits.count)
-            let planetRadius = (4 + rate * 4) * cellSize
+            let planetRadius: CGFloat = 3 * cellSize
 
             // Transform world → screen via camera
             let sx = (pos.x - frameX) * frameZoom + centerX
@@ -206,10 +218,12 @@ struct OrbitalSystemView: View {
         // --- Precompute moon (habit) screen positions ---
         struct MoonInfo {
             let habitId: UUID
+            let categoryId: UUID
             let screenX: CGFloat; let screenY: CGFloat
             let screenRadius: CGFloat
             let completedToday: Bool
             let worldX: CGFloat; let worldY: CGFloat
+            let colorName: String
         }
 
         var moons: [MoonInfo] = []
@@ -230,10 +244,12 @@ struct OrbitalSystemView: View {
 
                 moons.append(MoonInfo(
                     habitId: habit.id,
+                    categoryId: planet.categoryId,
                     screenX: sx, screenY: sy,
                     screenRadius: sr,
                     completedToday: habit.isCompleted(on: selectedDate),
-                    worldX: mPos.x, worldY: mPos.y
+                    worldX: mPos.x, worldY: mPos.y,
+                    colorName: habit.colorName
                 ))
             }
         }
@@ -243,10 +259,26 @@ struct OrbitalSystemView: View {
         let sunSY = (centerY - frameY) * frameZoom + centerY
         let sunSR = effectiveSunRadius * frameZoom
 
+        // Publish frame snapshot for hit-testing overlay
+        DispatchQueue.main.async {
+            var snap = OrbitalFrameSnapshot()
+            snap.sun = .init(id: sunId, screenX: sunSX, screenY: sunSY, screenRadius: sunSR)
+            snap.planets = planets.map {
+                .init(id: $0.categoryId, screenX: $0.screenX, screenY: $0.screenY, screenRadius: $0.screenRadius)
+            }
+            snap.moons = moons.map {
+                .init(id: $0.habitId, screenX: $0.screenX, screenY: $0.screenY, screenRadius: $0.screenRadius)
+            }
+            frameSnapshot = snap
+        }
+
         // --- Focus modifiers ---
         let focusedCategoryId: UUID? = {
-            if case .category(let id) = focus { return id }
-            return nil
+            switch focus {
+            case .category(let id): return id
+            case .planetDetail(let id): return id
+            default: return nil
+            }
         }()
         let focusedHabitId: UUID? = {
             switch focus {
@@ -315,6 +347,22 @@ struct OrbitalSystemView: View {
         let crosshairGap = reticleRadius * 1.6 // gap around the target so lines don't overlap it
         let crosshairThickness = cellSize * 0.9
 
+        // Category color lookup for tinting
+        // Tinted colors: blend 30% category color with 70% base dot color
+        // so planets stay in the halftone aesthetic but are distinguishable
+        let baseR: CGFloat = 0.18, baseG: CGFloat = 0.20, baseB: CGFloat = 0.05
+        let tintMix: CGFloat = 0.35
+        let categoryColors: [UUID: Color] = Dictionary(
+            uniqueKeysWithValues: sortedCategories.map { cat -> (UUID, Color) in
+                let c = NSColor(OrbitTheme.color(for: cat.colorName))
+                    .usingColorSpace(.sRGB) ?? NSColor(red: baseR, green: baseG, blue: baseB, alpha: 1)
+                let r = baseR * (1 - tintMix) + c.redComponent * tintMix
+                let g = baseG * (1 - tintMix) + c.greenComponent * tintMix
+                let b = baseB * (1 - tintMix) + c.blueComponent * tintMix
+                return (cat.id, Color(red: r, green: g, blue: b))
+            }
+        )
+
         // --- Render grid ---
         for row in 0..<rows {
             for col in 0..<cols {
@@ -322,6 +370,7 @@ struct OrbitalSystemView: View {
                 let y = gridOffsetY + CGFloat(row) * cellSize + cellSize / 2
 
                 var darkness: CGFloat = bgDarkness
+                var dotColor: Color = HalftoneRenderer.dotColor
 
                 // Global dimming when a target is focused
                 let globalDim: CGFloat = hasFocus ? 0.06 : bgDarkness
@@ -400,23 +449,26 @@ struct OrbitalSystemView: View {
                         let pd = (0.4 + light * 0.5) * dim
                         let edgeFade = 1.0 - pow(dist / pr, 3)
                         darkness = max(darkness, pd * edgeFade)
+                        if let catColor = categoryColors[planet.categoryId] {
+                            dotColor = catColor
+                        }
                     }
                 }
 
-                // Moon SDFs — always visible when zoomed, or when focused
-                let showMoons = frameZoom > 1.3
+                // Moon SDFs — fade in smoothly based on zoom level
+                let moonFade: CGFloat = min(max((frameZoom - 1.0) / 0.8, 0), 1)
                 for moon in moons {
                     let dist = hypot(x - moon.screenX, y - moon.screenY)
                     let mr = moon.screenRadius
                     let isFocused = focusedHabitId == moon.habitId
+                    let effectiveFade = isFocused ? 1.0 : moonFade
 
-                    guard showMoons || isFocused else { continue }
+                    guard effectiveFade > 0.01 else { continue }
 
-                    var dim: CGFloat = 1.0
-                    if isRoutineFocus && !routineHabitIds.contains(moon.habitId) { dim = 0.15 }
-                    if isWeeklyFocus && !scheduledTodayIds.contains(moon.habitId) { dim = 0.25 }
-                    // Dim non-focused moons when a specific habit is targeted
-                    if focusedHabitId != nil && !isFocused { dim = 0.2 }
+                    var dim: CGFloat = effectiveFade
+                    if isRoutineFocus && !routineHabitIds.contains(moon.habitId) { dim *= 0.15 }
+                    if isWeeklyFocus && !scheduledTodayIds.contains(moon.habitId) { dim *= 0.25 }
+                    if focusedHabitId != nil && !isFocused { dim *= 0.2 }
 
                     // Completion glow
                     if moon.completedToday && dist < mr * 1.6 && dist > mr {
@@ -433,6 +485,12 @@ struct OrbitalSystemView: View {
                         let md = (0.35 + light * 0.5) * dim
                         let edgeFade = 1.0 - pow(dist / mr, 3)
                         darkness = max(darkness, md * edgeFade)
+                        let mc = NSColor(OrbitTheme.color(for: moon.colorName))
+                            .usingColorSpace(.sRGB) ?? NSColor(red: baseR, green: baseG, blue: baseB, alpha: 1)
+                        let mr2 = baseR * (1 - tintMix) + mc.redComponent * tintMix
+                        let mg = baseG * (1 - tintMix) + mc.greenComponent * tintMix
+                        let mb = baseB * (1 - tintMix) + mc.blueComponent * tintMix
+                        dotColor = Color(red: mr2, green: mg, blue: mb)
                     }
                 }
 
@@ -546,7 +604,8 @@ struct OrbitalSystemView: View {
                     in: &context,
                     cellOrigin: cellOrigin,
                     cellSize: cellSize,
-                    darkness: darkness
+                    darkness: darkness,
+                    color: dotColor
                 )
             }
         }
